@@ -1,0 +1,118 @@
+<!-- pages/index/index.wxml -->
+<view class="container">
+  <!-- 顶部横幅 -->
+  <view class="banner">
+    <image class="banner-image" src="/images/banner-bg.jpg" mode="aspectFill"></image>
+    <view class="banner-content">
+      <text class="banner-title">AI Daily News</text>
+      <text class="banner-subtitle">专注AI行业的前沿资讯</text>
+    </view>
+  </view>
+
+  <!-- 分类导航 -->
+  <view class="category-nav">
+    <scroll-view class="category-scroll" scroll-x="true">
+      <view class="category-list">
+        <view 
+          class="category-item {{currentCategory === '' ? 'active' : ''}}" 
+          bindtap="switchCategory" 
+          data-category="">
+          全部
+        </view>
+        <view 
+          class="category-item {{currentCategory === 'ai' ? 'active' : ''}}" 
+          bindtap="switchCategory" 
+          data-category="ai">
+          AI技术
+        </view>
+        <view 
+          class="category-item {{currentCategory === 'technology' ? 'active' : ''}}" 
+          bindtap="switchCategory" 
+          data-category="technology">
+          科技
+        </view>
+        <view 
+          class="category-item {{currentCategory === 'business' ? 'active' : ''}}" 
+          bindtap="switchCategory" 
+          data-category="business">
+          商业
+        </view>
+        <view 
+          class="category-item {{currentCategory === 'research' ? 'active' : ''}}" 
+          bindtap="switchCategory" 
+          data-category="research">
+          研究
+        </view>
+      </view>
+    </scroll-view>
+  </view>
+
+  <!-- 热门推荐 -->
+  <view class="section">
+    <view class="section-header">
+      <text class="section-title">🔥 热门推荐</text>
+      <text class="section-more" bindtap="goToNews">更多 ></text>
+    </view>
+    <view class="hot-list">
+      <block wx:for="{{hotArticles}}" wx:key="id">
+        <view class="news-item card" bindtap="goToDetail" data-id="{{item.id}}">
+          <text class="news-title">{{item.title}}</text>
+          <text class="news-excerpt">{{item.excerpt}}</text>
+          <view class="news-meta">
+            <view class="news-source">{{item.source}}</view>
+            <view class="news-stats">
+              <view class="stat-item">
+                <text>👁️</text>
+                <text>{{item.view_count}}</text>
+              </view>
+              <view class="stat-item">
+                <text>👍</text>
+                <text>{{item.like_count}}</text>
+              </view>
+            </view>
+          </view>
+        </view>
+      </block>
+    </view>
+  </view>
+
+  <!-- 最新资讯 -->
+  <view class="section">
+    <view class="section-header">
+      <text class="section-title">📰 最新资讯</text>
+      <text class="section-more" bindtap="goToNews">更多 ></text>
+    </view>
+    <view class="news-list">
+      <block wx:for="{{articles}}" wx:key="id">
+        <view class="news-item card" bindtap="goToDetail" data-id="{{item.id}}">
+          <text class="news-title">{{item.title}}</text>
+          <text class="news-excerpt">{{item.excerpt}}</text>
+          <view class="news-tags">
+            <text class="tag tag-{{item.category}}">{{item.category}}</text>
+          </view>
+          <view class="news-meta">
+            <view class="news-source">{{item.source}}</view>
+            <text class="publish-time">{{item.publish_time}}</text>
+          </view>
+        </view>
+      </block>
+    </view>
+  </view>
+
+  <!-- 加载更多 -->
+  <view class="load-more" wx:if="{{hasMore}}">
+    <button class="btn-secondary" bindtap="loadMore">加载更多</button>
+  </view>
+
+  <!-- 空状态 -->
+  <view class="empty-state" wx:if="{{articles.length === 0 && !loading}}">
+    <view class="empty-icon">📰</view>
+    <text class="empty-text">暂无文章</text>
+  </view>
+
+  <!-- 加载中 -->
+  <view class="loading" wx:if="{{loading}}">
+    <view class="spinner"></view>
+    <text>加载中...</text>
+  </view>
+</view>
