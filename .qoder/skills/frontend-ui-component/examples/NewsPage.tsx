@@ -11,6 +11,7 @@ interface NewsItem {
   publishTime: string;
   source: string;
   readCount?: number;
+  isFeatured?: boolean; // 新增：标记精选新闻
 }
 
 // 新闻卡片组件 props
@@ -301,6 +302,7 @@ export const NewsPage: React.FC = () => {
       publishTime: '10 分钟前',
       source: '科技日报',
       readCount: 12580,
+      isFeatured: true, // 标记为精选新闻
     },
     {
       id: '2',
