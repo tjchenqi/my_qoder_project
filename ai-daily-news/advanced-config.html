@@ -1,0 +1,466 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Daily News 高级配置管理</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: #f8fafc; color: #1e293b; height: 100vh; overflow: hidden;
+        }
+
+        .sidebar { width: 240px; height: 100vh; background: #1e293b; position: fixed; left: 0; top: 0; padding: 24px 0; }
+        .nav-item.active { background: #4f46e5; color: white; }
+        .main-content { margin-left: 240px; height: 100vh; display: flex; flex-direction: column; }
+        .top-nav { height: 64px; background: white; border-bottom: 1px solid #e2e8f0; display: flex; align-items: center; justify-content: space-between; padding: 0 24px; }
+        .content-area { flex: 1; padding: 24px; overflow-y: auto; }
+        .card { background: white; border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); margin-bottom: 24px; }
+        .card-header { padding: 20px 24px; border-bottom: 1px solid #f1f5f9; display: flex; justify-content: space-between; align-items: center; }
+        .card-title { font-size: 18px; font-weight: 600; color: #1e293b; }
+        .card-body { padding: 24px; }
+        
+        .config-tabs { display: flex; border-bottom: 1px solid #e2e8f0; margin-bottom: 24px; }
+        .tab { padding: 12px 20px; cursor: pointer; border-bottom: 2px solid transparent; transition: all 0.2s ease; }
+        .tab.active { color: #4f46e5; border-bottom-color: #4f46e5; font-weight: 600; }
+        
+        .config-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+        .config-section { background: #f8fafc; border-radius: 8px; padding: 20px; }
+        .section-title { font-size: 16px; font-weight: 600; margin-bottom: 16px; color: #1e293b; display: flex; align-items: center; gap: 8px; }
+        
+        .form-group { margin-bottom: 20px; }
+        .form-label { display: block; margin-bottom: 8px; font-weight: 500; color: #334155; }
+        .form-input, .form-select, .form-textarea { width: 100%; padding: 10px 12px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 14px; }
+        .form-textarea { min-height: 120px; resize: vertical; }
+        .form-switch { display: flex; align-items: center; gap: 12px; }
+        
+        .btn { padding: 10px 20px; border-radius: 6px; font-size: 14px; font-weight: 500; cursor: pointer; border: none; transition: all 0.2s ease; }
+        .btn.primary { background: #4f46e5; color: white; }
+        .btn.secondary { background: #f1f5f9; color: #334155; }
+        .btn.success { background: #10b981; color: white; }
+        .btn.warning { background: #f59e0b; color: white; }
+        
+        .toggle-switch { position: relative; display: inline-block; width: 50px; height: 24px; }
+        .toggle-switch input { opacity: 0; width: 0; height: 0; }
+        .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #cbd5e1; transition: .4s; border-radius: 24px; }
+        .slider:before { position: absolute; content: ""; height: 16px; width: 16px; left: 4px; bottom: 4px; background-color: white; transition: .4s; border-radius: 50%; }
+        input:checked + .slider { background-color: #4f46e5; }
+        input:checked + .slider:before { transform: translateX(26px); }
+        
+        .model-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 16px; }
+        .model-item { background: white; border: 1px solid #e2e8f0; border-radius: 8px; padding: 16px; }
+        .model-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+        .model-name { font-weight: 600; color: #1e293b; }
+        .model-status { padding: 2px 8px; border-radius: 12px; font-size: 12px; font-weight: 500; }
+        .status-active { background: #dcfce7; color: #166534; }
+        .status-inactive { background: #fee2e2; color: #991b1b; }
+        
+        .compliance-rules { background: #fffbeb; border-left: 4px solid #f59e0b; padding: 16px; border-radius: 8px; margin: 20px 0; }
+    </style>
+</head>
+<body>
+    <!-- 侧边栏 -->
+    <div class="sidebar">
+        <div class="logo" style="padding: 0 24px 24px; border-bottom: 1px solid #334155; margin-bottom: 24px;">
+            <div class="logo-text" style="color: white; font-size: 20px; font-weight: 700; display: flex; align-items: center; gap: 8px;">
+                <span>🤖</span><span>AI News Admin</span>
+            </div>
+        </div>
+        
+        <div class="nav-menu" style="padding: 0 12px;">
+            <div class="nav-item" style="display: flex; align-items: center; gap: 12px; padding: 12px 16px; border-radius: 8px; margin-bottom: 4px; cursor: pointer; color: #94a3b8; font-size: 14px; font-weight: 500;">
+                <div>📊</div><span>仪表板</span>
+            </div>
+            <div class="nav-item" style="display: flex; align-items: center; gap: 12px; padding: 12px 16px; border-radius: 8px; margin-bottom: 4px; cursor: pointer; color: #94a3b8; font-size: 14px; font-weight: 500;">
+                <div>👥</div><span>用户管理</span>
+            </div>
+            <div class="nav-item" style="display: flex; align-items: center; gap: 12px; padding: 12px 16px; border-radius: 8px; margin-bottom: 4px; cursor: pointer; color: #94a3b8; font-size: 14px; font-weight: 500;">
+                <div>📰</div><span>内容管理</span>
+            </div>
+            <div class="nav-item active" style="display: flex; align-items: center; gap: 12px; padding: 12px 16px; border-radius: 8px; margin-bottom: 4px; cursor: pointer; color: white; font-size: 14px; font-weight: 500; background: #4f46e5;">
+                <div>⚙️</div><span>高级配置</span>
+            </div>
+            <div class="nav-item" style="display: flex; align-items: center; gap: 12px; padding: 12px 16px; border-radius: 8px; margin-bottom: 4px; cursor: pointer; color: #94a3b8; font-size: 14px; font-weight: 500;">
+                <div>📈</div><span>数据分析</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- 主内容区 -->
+    <div class="main-content">
+        <!-- 顶部导航 -->
+        <div class="top-nav">
+            <div class="page-title" style="font-size: 20px; font-weight: 600; color: #1e293b;">高级配置管理</div>
+            <div class="user-profile" style="display: flex; align-items: center; gap: 12px;">
+                <div class="avatar" style="width: 36px; height: 36px; border-radius: 50%; background: #4f46e5; display: flex; align-items: center; justify-content: center; color: white; font-weight: 600;">A</div>
+                <span>超级管理员</span>
+            </div>
+        </div>
+
+        <!-- 内容区域 -->
+        <div class="content-area">
+            <!-- 配置标签页 -->
+            <div class="config-tabs">
+                <div class="tab active" data-tab="models">大模型配置</div>
+                <div class="tab" data-tab="translation">翻译配置</div>
+                <div class="tab" data-tab="compliance">合规配置</div>
+                <div class="tab" data-tab="advanced">高级设置</div>
+            </div>
+
+            <!-- 大模型配置 -->
+            <div class="tab-content active" data-tab="models">
+                <div class="card">
+                    <div class="card-header">
+                        <div class="card-title">国内大模型配置</div>
+                        <button class="btn primary">添加自定义模型</button>
+                    </div>
+                    <div class="card-body">
+                        <div class="model-list">
+                            <!-- 阿里千问 -->
+                            <div class="model-item">
+                                <div class="model-header">
+                                    <div class="model-name">阿里千问 (Qwen)</div>
+                                    <div class="model-status status-active">已启用</div>
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">API Key</label>
+                                    <input type="password" class="form-input" value="sk-****************************************">
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">默认模型</label>
+                                    <select class="form-select">
+                                        <option>qwen-max</option>
+                                        <option selected>qwen-plus</option>
+                                        <option>qwen-turbo</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">使用比例</label>
+                                    <input type="range" min="0" max="100" value="70" class="form-input">
+                                </div>
+                            </div>
+
+                            <!-- 百度文心一言 -->
+                            <div class="model-item">
+                                <div class="model-header">
+                                    <div class="model-name">百度文心一言 (ERNIE)</div>
+                                    <div class="model-status status-inactive">未启用</div>
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">API Key</label>
+                                    <input type="password" class="form-input" placeholder="请输入API Key">
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">Secret Key</label>
+                                    <input type="password" class="form-input" placeholder="请输入Secret Key">
+                                </div>
+                                <button class="btn secondary" style="width: 100%;">启用模型</button>
+                            </div>
+
+                            <!-- 自定义模型 -->
+                            <div class="model-item">
+                                <div class="model-header">
+                                    <div class="model-name">自定义模型</div>
+                                    <div class="model-status status-inactive">未配置</div>
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">模型名称</label>
+                                    <input type="text" class="form-input" placeholder="如：企业私有模型">
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">API地址</label>
+                                    <input type="url" class="form-input" placeholder="https://api.example.com/v1/chat">
+                                </div>
+                                <button class="btn secondary" style="width: 100%;">配置模型</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 翻译配置 -->
+            <div class="tab-content" data-tab="translation">
+                <div class="card">
+                    <div class="card-header">
+                        <div class="card-title">翻译处理配置</div>
+                    </div>
+                    <div class="card-body">
+                        <div class="config-grid">
+                            <div class="config-section">
+                                <div class="section-title">
+                                    <span>🔤</span>
+                                    <span>语言处理</span>
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label class="form-label">源语言检测</label>
+                                    <select class="form-select">
+                                        <option selected>自动检测</option>
+                                        <option>英文</option>
+                                        <option>日文</option>
+                                        <option>韩文</option>
+                                    </select>
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label class="form-label">目标语言</label>
+                                    <select class="form-select">
+                                        <option selected>中文</option>
+                                        <option>英文</option>
+                                    </select>
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label class="form-label">翻译质量要求</label>
+                                    <select class="form-select">
+                                        <option>标准翻译</option>
+                                        <option selected>专业级翻译</option>
+                                        <option>学术级翻译</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div class="config-section">
+                                <div class="section-title">
+                                    <span>📋</span>
+                                    <span>术语配置</span>
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label class="form-label">专业术语库</label>
+                                    <textarea class="form-textarea" placeholder="AI=人工智能
+ML=机器学习
+DL=深度学习
+NLP=自然语言处理">AI=人工智能
+ML=机器学习
+DL=深度学习
+NLP=自然语言处理</textarea>
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label class="form-label">质量阈值</label>
+                                    <input type="range" min="0" max="100" value="85" class="form-input">
+                                    <div style="display: flex; justify-content: space-between; font-size: 12px; color: #64748b; margin-top: 4px;">
+                                        <span>宽松 (70)</span>
+                                        <span>85%</span>
+                                        <span>严格 (95)</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 合规配置 -->
+            <div class="tab-content" data-tab="compliance">
+                <div class="compliance-rules">
+                    <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 12px;">
+                        <span style="font-size: 20px;">🛡️</span>
+                        <h3 style="font-size: 16px; font-weight: 600; color: #92400e;">内容合规默认配置</h3>
+                    </div>
+                    <p style="color: #92400e; line-height: 1.6;">
+                        系统已内置完善的内容合规检查机制，包括敏感词过滤、质量评估、版权检查等默认规则。
+                    </p>
+                </div>
+
+                <div class="card">
+                    <div class="card-header">
+                        <div class="card-title">合规检查配置</div>
+                    </div>
+                    <div class="card-body">
+                        <div class="config-grid">
+                            <div class="config-section">
+                                <div class="section-title">
+                                    <span>🚫</span>
+                                    <span>敏感词过滤</span>
+                                </div>
+                                
+                                <div class="form-group">
+                                    <div class="form-switch">
+                                        <label class="toggle-switch">
+                                            <input type="checkbox" checked>
+                                            <span class="slider"></span>
+                                        </label>
+                                        <span>启用敏感词过滤</span>
+                                    </div>
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label class="form-label">过滤严格程度</label>
+                                    <select class="form-select">
+                                        <option>宽松</option>
+                                        <option selected>标准</option>
+                                        <option>严格</option>
+                                    </select>
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label class="form-label">自定义敏感词</label>
+                                    <textarea class="form-textarea" placeholder="每行一个敏感词">#敏感词1
+#敏感词2
+#敏感词3"></textarea>
+                                </div>
+                            </div>
+
+                            <div class="config-section">
+                                <div class="section-title">
+                                    <span>✅</span>
+                                    <span>内容质量</span>
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label class="form-label">最低质量分数</label>
+                                    <input type="range" min="0" max="100" value="80" class="form-input">
+                                    <div style="font-size: 12px; color: #64748b; margin-top: 4px;">80分</div>
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label class="form-label">事实核查要求</label>
+                                    <select class="form-select">
+                                        <option>建议</option>
+                                        <option selected>必需</option>
+                                        <option>严格</option>
+                                    </select>
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label class="form-label">原创性要求</label>
+                                    <select class="form-select">
+                                        <option>不限制</option>
+                                        <option selected>禁止完全复制</option>
+                                        <option>必须原创</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 高级设置 -->
+            <div class="tab-content" data-tab="advanced">
+                <div class="card">
+                    <div class="card-header">
+                        <div class="card-title">高级系统配置</div>
+                    </div>
+                    <div class="card-body">
+                        <div class="config-grid">
+                            <div class="config-section">
+                                <div class="section-title">
+                                    <span>⚡</span>
+                                    <span>性能优化</span>
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label class="form-label">缓存策略</label>
+                                    <select class="form-select">
+                                        <option>激进缓存</option>
+                                        <option selected>平衡缓存</option>
+                                        <option>保守缓存</option>
+                                    </select>
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label class="form-label">并发处理数</label>
+                                    <input type="number" class="form-input" value="10" min="1" max="50">
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label class="form-label">超时时间(秒)</label>
+                                    <input type="number" class="form-input" value="30" min="5" max="300">
+                                </div>
+                            </div>
+
+                            <div class="config-section">
+                                <div class="section-title">
+                                    <span>🔒</span>
+                                    <span>安全配置</span>
+                                </div>
+                                
+                                <div class="form-group">
+                                    <div class="form-switch">
+                                        <label class="toggle-switch">
+                                            <input type="checkbox" checked>
+                                            <span class="slider"></span>
+                                        </label>
+                                        <span>启用访问日志</span>
+                                    </div>
+                                </div>
+                                
+                                <div class="form-group">
+                                    <div class="form-switch">
+                                        <label class="toggle-switch">
+                                            <input type="checkbox" checked>
+                                            <span class="slider"></span>
+                                        </label>
+                                        <span>启用安全审计</span>
+                                    </div>
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label class="form-label">备份频率</label>
+                                    <select class="form-select">
+                                        <option>每小时</option>
+                                        <option selected>每日</option>
+                                        <option>每周</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div style="text-align: center; margin-top: 32px;">
+                            <button class="btn secondary" style="margin-right: 16px;">重置为默认</button>
+                            <button class="btn primary">保存所有配置</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 标签页切换
+        document.querySelectorAll('.tab').forEach(tab => {
+            tab.addEventListener('click', function() {
+                const tabName = this.dataset.tab;
+                
+                // 更新标签状态
+                document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+                this.classList.add('active');
+                
+                // 显示对应内容
+                document.querySelectorAll('.tab-content').forEach(content => {
+                    content.classList.remove('active');
+                });
+                document.querySelector(`[data-tab="${tabName}"]`).classList.add('active');
+            });
+        });
+
+        // 配置保存功能
+        document.querySelectorAll('.btn.primary').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const originalText = this.textContent;
+                this.textContent = '保存中...';
+                this.disabled = true;
+                
+                setTimeout(() => {
+                    this.textContent = '✓ 保存成功';
+                    this.classList.remove('primary');
+                    this.classList.add('success');
+                    
+                    setTimeout(() => {
+                        this.textContent = originalText;
+                        this.classList.remove('success');
+                        this.classList.add('primary');
+                        this.disabled = false;
+                    }, 2000);
+                }, 1500);
+            });
+        });
+    </script>
+</body>
+</html>

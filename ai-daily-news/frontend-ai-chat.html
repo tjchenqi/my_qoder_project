@@ -1,0 +1,730 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Daily News - AI问答</title>
+<style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+            color: #333;
+            line-height: 1.6;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* 顶部导航 */
+        .header {
+            background: white;
+            padding: 16px 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            flex-shrink: 0;
+        }
+
+        .back-btn {
+            width: 24px;
+            height: 24px;
+            cursor: pointer;
+            color: #6b7280;
+            transition: color 0.2s;
+        }
+
+        .back-btn:hover {
+            color: #2563eb;
+        }
+
+        .header-title {
+            flex: 1;
+            font-size: 18px;
+            font-weight: 600;
+            color: #1f2937;
+            text-align: center;
+        }
+
+        .settings-btn {
+            width: 24px;
+            height: 24px;
+            cursor: pointer;
+            color: #6b7280;
+        }
+
+        /* AI助手头部 */
+        .ai-header {
+            background: linear-gradient(135deg, #2563eb 0%, #3b82f6 100%);
+            color: white;
+            padding: 24px 20px;
+            text-align: center;
+            flex-shrink: 0;
+        }
+
+        .ai-avatar {
+            width: 60px;
+            height: 60px;
+            background: white;
+            border-radius: 50%;
+            margin: 0 auto 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            font-weight: bold;
+            color: #2563eb;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+
+        .ai-name {
+            font-size: 20px;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .ai-status {
+            font-size: 14px;
+            opacity: 0.9;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+        }
+
+        .status-indicator {
+            width: 8px;
+            height: 8px;
+            background: #10b981;
+            border-radius: 50%;
+            animation: pulse 1.5s infinite;
+        }
+
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.4; }
+            100% { opacity: 1; }
+        }
+
+        /* 聊天区域 */
+        .chat-container {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .message {
+            max-width: 80%;
+            padding: 16px 20px;
+            border-radius: 18px;
+            animation: fadeIn 0.3s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .user-message {
+            background: #2563eb;
+            color: white;
+            align-self: flex-end;
+            border-bottom-right-radius: 4px;
+        }
+
+        .ai-message {
+            background: white;
+            color: #374151;
+            align-self: flex-start;
+            border-bottom-left-radius: 4px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        }
+
+        .message-time {
+            font-size: 12px;
+            opacity: 0.7;
+            margin-top: 8px;
+            text-align: right;
+        }
+
+        .ai-message .message-time {
+            text-align: left;
+        }
+
+        .typing-indicator {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            padding: 16px 20px;
+            background: white;
+            border-radius: 18px;
+            align-self: flex-start;
+            border-bottom-left-radius: 4px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        }
+
+        .typing-dot {
+            width: 8px;
+            height: 8px;
+            background: #2563eb;
+            border-radius: 50%;
+            animation: typing 1.4s infinite ease-in-out;
+        }
+
+        .typing-dot:nth-child(1) { animation-delay: 0s; }
+        .typing-dot:nth-child(2) { animation-delay: 0.2s; }
+        .typing-dot:nth-child(3) { animation-delay: 0.4s; }
+
+        @keyframes typing {
+            0%, 60%, 100% { transform: translateY(0); }
+            30% { transform: translateY(-8px); }
+        }
+
+        /* 快捷问题 */
+        .quick-questions {
+            background: white;
+            padding: 20px;
+            border-radius: 16px;
+            margin: 0 20px 20px;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+        }
+
+        .quick-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: #1f2937;
+            margin-bottom: 16px;
+            text-align: center;
+        }
+
+        .question-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+        }
+
+        .quick-question {
+            background: #f9fafb;
+            border: 1px solid #e5e7eb;
+            border-radius: 12px;
+            padding: 12px;
+            font-size: 14px;
+            color: #6b7280;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-align: center;
+        }
+
+        .quick-question:hover {
+            background: #eff6ff;
+            border-color: #2563eb;
+            color: #2563eb;
+            transform: translateY(-2px);
+        }
+
+        /* 输入区域 */
+        .input-container {
+            background: white;
+            padding: 16px 20px;
+            border-top: 1px solid #e5e7eb;
+            flex-shrink: 0;
+        }
+
+        .input-area {
+            display: flex;
+            gap: 12px;
+            align-items: flex-end;
+        }
+
+        .message-input {
+            flex: 1;
+            border: 1px solid #e5e7eb;
+            border-radius: 24px;
+            padding: 12px 20px;
+            font-size: 16px;
+            outline: none;
+            resize: none;
+            min-height: 24px;
+            max-height: 120px;
+            transition: border-color 0.2s;
+        }
+
+        .message-input:focus {
+            border-color: #2563eb;
+        }
+
+        .send-button {
+            width: 44px;
+            height: 44px;
+            background: #2563eb;
+            color: white;
+            border: none;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+            flex-shrink: 0;
+        }
+
+        .send-button:hover {
+            background: #1d4ed8;
+            transform: scale(1.05);
+        }
+
+        .send-button:disabled {
+            background: #9ca3af;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .send-icon {
+            width: 20px;
+            height: 20px;
+        }
+
+        /* 功能按钮区 */
+        .feature-buttons {
+            display: flex;
+            gap: 12px;
+            margin-top: 12px;
+        }
+
+        .feature-btn {
+            flex: 1;
+            background: #f9fafb;
+            border: 1px solid #e5e7eb;
+            border-radius: 16px;
+            padding: 10px;
+            font-size: 14px;
+            color: #6b7280;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+        }
+
+        .feature-btn:hover {
+            background: #f3f4f6;
+            border-color: #d1d5db;
+        }
+
+        .feature-icon {
+            width: 16px;
+            height: 16px;
+        }
+
+        /* 历史记录 */
+        .history-panel {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 1000;
+            display: none;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .history-content {
+            background: white;
+            width: 90%;
+            max-width: 400px;
+            border-radius: 16px;
+            padding: 24px;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+
+        .history-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .history-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #1f2937;
+        }
+
+        .close-btn {
+            width: 24px;
+            height: 24px;
+            cursor: pointer;
+            color: #6b7280;
+        }
+
+        .history-item {
+            padding: 12px;
+            border-bottom: 1px solid #f3f4f6;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .history-item:hover {
+            background: #f9fafb;
+        }
+
+        .history-question {
+            font-size: 14px;
+            color: #374151;
+            margin-bottom: 4px;
+        }
+
+        .history-time {
+            font-size: 12px;
+            color: #9ca3af;
+        }
+
+        /* 响应式设计 */
+        @media (max-width: 768px) {
+            .question-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .message {
+                max-width: 90%;
+            }
+            
+            .feature-buttons {
+                flex-direction: column;
+            }
+        }
+
+        /* 加载动画 */
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #2563eb;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <!-- 顶部导航 -->
+    <header class="header">
+        <svg class="back-btn" viewBox="0 0 24 24" fill="currentColor" onclick="goBack()">
+            <path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/>
+        </svg>
+        <div class="header-title">AI智能问答</div>
+        <svg class="settings-btn" viewBox="0 0 24 24" fill="currentColor" onclick="showHistory()">
+            <path d="M13 3c-4.97 0-9 4.03-9 9H1l3.89 3.89.07.14L9 12H6c0-3.87 3.13-7 7-7s7 3.13 7 7-3.13 7-7 7c-1.93 0-3.68-.79-4.94-2.06l-1.42 1.42C8.27 19.99 10.51 21 13 21c4.97 0 9-4.03 9-9s-4.03-9-9-9zm-1 5v5l4.28 2.54.72-1.21-3.5-2.08V8H12z"/>
+        </svg>
+    </header>
+
+    <!-- AI助手头部 -->
+    <div class="ai-header">
+        <div class="ai-avatar">AI</div>
+        <div class="ai-name">智能小助手</div>
+        <div class="ai-status">
+            <div class="status-indicator"></div>
+            <span>在线为您服务</span>
+        </div>
+    </div>
+
+    <!-- 聊天区域 -->
+    <div class="chat-container" id="chatContainer">
+        <!-- AI欢迎消息 -->
+        <div class="message ai-message">
+            您好！我是您的AI助手，可以帮您解答关于AI行业的任何问题。您可以问我技术问题、行业发展、投资机会等任何相关内容。
+            <div class="message-time">现在</div>
+        </div>
+
+        <!-- 快捷问题 -->
+        <div class="quick-questions">
+            <div class="quick-title">您可以这样问我：</div>
+            <div class="question-grid">
+                <div class="quick-question" onclick="askQuestion('大语言模型的发展趋势是什么？')">大语言模型的发展趋势是什么？</div>
+                <div class="quick-question" onclick="askQuestion('AI在医疗领域的应用现状如何？')">AI在医疗领域的应用现状如何？</div>
+                <div class="quick-question" onclick="askQuestion('生成式AI的商业模式有哪些？')">生成式AI的商业模式有哪些？</div>
+                <div class="quick-question" onclick="askQuestion('AI芯片技术的最新进展？')">AI芯片技术的最新进展？</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 输入区域 -->
+    <div class="input-container">
+        <div class="input-area">
+            <textarea class="message-input" id="messageInput" placeholder="请输入您的问题..." rows="1"></textarea>
+            <button class="send-button" id="sendButton" onclick="sendMessage()">
+                <svg class="send-icon" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/>
+                </svg>
+            </button>
+        </div>
+        
+        <div class="feature-buttons">
+            <button class="feature-btn" onclick="insertText('基于这篇文章')">
+                <svg class="feature-icon" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2H18c1.1 0 2-.9 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z"/>
+                </svg>
+                基于文章
+            </button>
+            <button class="feature-btn" onclick="insertText('深入分析')">
+                <svg class="feature-icon" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zM9 17H7v-7h2v7zm4 0h-2V7h2v10zm4 0h-2v-4h2v4z"/>
+                </svg>
+                深入分析
+            </button>
+            <button class="feature-btn" onclick="insertText('简单解释')">
+                <svg class="feature-icon" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M11 18h2v-2h-2v2zm1-16C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm1-4h-2v-2h2v2z"/>
+                </svg>
+                简单解释
+            </button>
+        </div>
+    </div>
+
+    <!-- 历史记录面板 -->
+    <div class="history-panel" id="historyPanel">
+        <div class="history-content">
+            <div class="history-header">
+                <div class="history-title">历史对话</div>
+                <svg class="close-btn" viewBox="0 0 24 24" fill="currentColor" onclick="hideHistory()">
+                    <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/>
+                </svg>
+            </div>
+            <div id="historyList">
+                <div class="history-item" onclick="loadHistoryItem(0)">
+                    <div class="history-question">什么是大语言模型？</div>
+                    <div class="history-time">今天 14:30</div>
+                </div>
+                <div class="history-item" onclick="loadHistoryItem(1)">
+                    <div class="history-question">AI在医疗领域的应用有哪些？</div>
+                    <div class="history-time">今天 10:15</div>
+                </div>
+                <div class="history-item" onclick="loadHistoryItem(2)">
+                    <div class="history-question">生成式AI的发展前景如何？</div>
+                    <div class="history-time">昨天 16:45</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let chatHistory = [];
+        let isTyping = false;
+
+        // 自动调整输入框高度
+        document.getElementById('messageInput').addEventListener('input', function() {
+            this.style.height = 'auto';
+            this.style.height = (this.scrollHeight) + 'px';
+        });
+
+        // 回车发送消息
+        document.getElementById('messageInput').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                sendMessage();
+            }
+        });
+
+        // 发送消息函数
+        function sendMessage() {
+            const input = document.getElementById('messageInput');
+            const message = input.value.trim();
+            
+            if (!message || isTyping) return;
+            
+            // 添加用户消息
+            addMessage(message, 'user');
+            chatHistory.push({ role: 'user', content: message, time: new Date() });
+            
+            // 清空输入框
+            input.value = '';
+            input.style.height = 'auto';
+            
+            // 模拟AI回复
+            simulateAIResponse(message);
+        }
+
+        // 添加消息到聊天区域
+        function addMessage(content, sender) {
+            const chatContainer = document.getElementById('chatContainer');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${sender}-message`;
+            
+            messageDiv.innerHTML = `
+                ${content}
+                <div class="message-time">${getCurrentTime()}</div>
+            `;
+            
+            // 移除快捷问题区域（如果是第一条用户消息）
+            const quickQuestions = document.querySelector('.quick-questions');
+            if (quickQuestions && sender === 'user') {
+                quickQuestions.remove();
+            }
+            
+            chatContainer.appendChild(messageDiv);
+            scrollToBottom();
+        }
+
+        // 模拟AI回复
+        function simulateAIResponse(userMessage) {
+            isTyping = true;
+            const sendButton = document.getElementById('sendButton');
+            sendButton.disabled = true;
+            
+            // 显示正在输入状态
+            showTypingIndicator();
+            
+            // 模拟处理时间
+            setTimeout(() => {
+                hideTypingIndicator();
+                
+                // 生成AI回复
+                const aiResponse = generateAIResponse(userMessage);
+                addMessage(aiResponse, 'ai');
+                chatHistory.push({ role: 'ai', content: aiResponse, time: new Date() });
+                
+                isTyping = false;
+                sendButton.disabled = false;
+            }, 2000 + Math.random() * 2000); // 2-4秒随机延迟
+        }
+
+        // 生成AI回复（模拟）
+        function generateAIResponse(question) {
+            const responses = {
+                '大语言模型': '大语言模型（Large Language Model，LLM）是基于大量文本数据训练的深度学习模型，能够理解和生成人类语言。它们通过预测下一个词的方式来学习语言的统计规律，从而具备了强大的语言理解和生成能力。',
+                '发展趋势': '大语言模型的发展趋势主要包括：1）模型规模持续扩大，参数量不断提升；2）多模态能力增强，能够处理文本、图像、音频等多种数据；3）推理效率优化，降低计算成本；4）应用落地加速，在各行各业实现商业化应用。',
+                '医疗应用': 'AI在医疗领域的应用非常广泛，主要包括：1）医学影像诊断，如CT、MRI图像分析；2）辅助诊疗决策，提供诊断建议；3）药物研发加速，缩短新药开发周期；4）个性化治疗方案制定；5）医院管理和运营优化。',
+                '商业模式': '生成式AI的主要商业模式包括：1）API服务收费，按调用次数计费；2）SaaS订阅服务，提供完整解决方案；3）定制化开发，为企业提供专属模型；4）平台分成，构建生态系统；5）数据服务，提供训练数据和标注服务。',
+                '芯片技术': 'AI芯片技术最新进展包括：1）专用AI芯片性能大幅提升，如英伟达H100；2）存算一体架构创新，提高能效比；3）光子计算芯片研发，突破传统电子限制；4）边缘AI芯片兴起，满足低延迟需求；5）量子计算与AI结合探索。'
+            };
+            
+            // 简单的关键词匹配
+            for (const [key, response] of Object.entries(responses)) {
+                if (question.includes(key)) {
+                    return response;
+                }
+            }
+            
+            // 默认回复
+            return `关于"${question}"这个问题很有趣！作为AI助手，我可以为您提供专业的分析和见解。不过我需要更多信息来给出更准确的回答。您可以告诉我您具体关心的方面吗？比如技术细节、商业应用还是发展趋势？`;
+        }
+
+        // 显示正在输入指示器
+        function showTypingIndicator() {
+            const chatContainer = document.getElementById('chatContainer');
+            const typingDiv = document.createElement('div');
+            typingDiv.id = 'typingIndicator';
+            typingDiv.className = 'typing-indicator';
+            typingDiv.innerHTML = `
+                <div class="typing-dot"></div>
+                <div class="typing-dot"></div>
+                <div class="typing-dot"></div>
+                <span style="margin-left: 8px; color: #6b7280;">AI正在思考...</span>
+            `;
+            chatContainer.appendChild(typingDiv);
+            scrollToBottom();
+        }
+
+        // 隐藏正在输入指示器
+        function hideTypingIndicator() {
+            const indicator = document.getElementById('typingIndicator');
+            if (indicator) {
+                indicator.remove();
+            }
+        }
+
+        // 快捷问题点击
+        function askQuestion(question) {
+            document.getElementById('messageInput').value = question;
+            sendMessage();
+        }
+
+        // 插入文本到输入框
+        function insertText(text) {
+            const input = document.getElementById('messageInput');
+            const currentValue = input.value;
+            input.value = currentValue + (currentValue ? ' ' : '') + text + ' ';
+            input.focus();
+        }
+
+        // 显示历史记录
+        function showHistory() {
+            document.getElementById('historyPanel').style.display = 'flex';
+        }
+
+        // 隐藏历史记录
+        function hideHistory() {
+            document.getElementById('historyPanel').style.display = 'none';
+        }
+
+        // 加载历史记录项
+        function loadHistoryItem(index) {
+            const historyItems = [
+                '什么是大语言模型？',
+                'AI在医疗领域的应用有哪些？',
+                '生成式AI的发展前景如何？'
+            ];
+            
+            if (historyItems[index]) {
+                document.getElementById('messageInput').value = historyItems[index];
+                hideHistory();
+                sendMessage();
+            }
+        }
+
+        // 返回功能
+        function goBack() {
+            window.history.back();
+        }
+
+        // 工具函数
+        function getCurrentTime() {
+            const now = new Date();
+            return `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`;
+        }
+
+        function scrollToBottom() {
+            const chatContainer = document.getElementById('chatContainer');
+            chatContainer.scrollTop = chatContainer.scrollHeight;
+        }
+
+        // 页面加载完成后的初始化
+        document.addEventListener('DOMContentLoaded', function() {
+            // 聚焦到输入框
+            document.getElementById('messageInput').focus();
+            
+            // 添加一些示例对话历史
+            chatHistory = [
+                {
+                    role: 'user',
+                    content: '什么是大语言模型？',
+                    time: new Date(Date.now() - 3600000)
+                },
+                {
+                    role: 'ai',
+                    content: '大语言模型（Large Language Model，LLM）是基于大量文本数据训练的深度学习模型...',
+                    time: new Date(Date.now() - 3500000)
+                }
+            ];
+        });
+    </script>
+</body>
+</html>

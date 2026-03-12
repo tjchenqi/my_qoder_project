@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Daily News 演示</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background-color: #1a1a1a;
+            color: #e4e4e4;
+            line-height: 1.6;
+        }
+        
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px 0;
+            border-bottom: 1px solid #3f3f3f;
+            margin-bottom: 30px;
+        }
+        
+        .logo {
+            font-size: 24px;
+            font-weight: bold;
+        }
+        
+        .theme-toggle {
+            background: #2d2d2d;
+            border: 1px solid #3f3f3f;
+            color: #e4e4e4;
+            padding: 8px 16px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        
+        .categories {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 30px;
+            overflow-x: auto;
+            padding-bottom: 10px;
+        }
+        
+        .category-btn {
+            background: #2d2d2d;
+            border: none;
+            color: #a0a0a0;
+            padding: 8px 16px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 14px;
+            white-space: nowrap;
+        }
+        
+        .category-btn.active {
+            background: #6366f1;
+            color: white;
+        }
+        
+        .section-title {
+            font-size: 18px;
+            font-weight: 600;
+            margin: 25px 0 15px;
+            color: #a0a0a0;
+        }
+        
+        .news-card {
+            background: #252525;
+            border-radius: 12px;
+            overflow: hidden;
+            margin-bottom: 20px;
+            transition: transform 0.2s ease;
+        }
+        
+        .news-card:hover {
+            transform: translateY(-2px);
+        }
+        
+        .featured-card {
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .featured-image {
+            height: 200px;
+            background: linear-gradient(45deg, #6366f1, #8b5cf6);
+            position: relative;
+        }
+        
+        .category-tag {
+            position: absolute;
+            top: 15px;
+            left: 15px;
+            background: #6366f1;
+            color: white;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+        
+        .card-content {
+            padding: 20px;
+        }
+        
+        .news-title {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 10px;
+            color: #e4e4e4;
+        }
+        
+        .news-summary {
+            color: #a0a0a0;
+            font-size: 14px;
+            margin-bottom: 15px;
+            line-height: 1.5;
+        }
+        
+        .news-meta {
+            display: flex;
+            justify-content: space-between;
+            font-size: 12px;
+            color: #717171;
+        }
+        
+        .compact-card {
+            display: flex;
+            gap: 15px;
+            padding: 15px;
+            background: #252525;
+            border-radius: 8px;
+            margin-bottom: 12px;
+        }
+        
+        .thumbnail {
+            width: 100px;
+            height: 80px;
+            background: linear-gradient(45deg, #8b5cf6, #ec4899);
+            border-radius: 8px;
+            flex-shrink: 0;
+        }
+        
+        .compact-content {
+            flex: 1;
+        }
+        
+        .compact-category {
+            display: inline-block;
+            background: rgba(99, 102, 241, 0.2);
+            color: #818cf8;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 11px;
+            margin-bottom: 8px;
+        }
+        
+        .load-more {
+            display: block;
+            width: 100%;
+            padding: 15px;
+            background: transparent;
+            border: 1px solid #3f3f3f;
+            color: #a0a0a0;
+            border-radius: 8px;
+            margin-top: 30px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: all 0.2s ease;
+        }
+        
+        .load-more:hover {
+            background: #2d2d2d;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- 顶部导航 -->
+        <div class="header">
+            <div class="logo">🌙 AI Daily News</div>
+            <button class="theme-toggle" onclick="toggleTheme()">☀️</button>
+        </div>
+        
+        <!-- 分类标签 -->
+        <div class="categories">
+            <button class="category-btn active">全部</button>
+            <button class="category-btn">科技</button>
+            <button class="category-btn">财经</button>
+            <button class="category-btn">社会</button>
+            <button class="category-btn">娱乐</button>
+            <button class="category-btn">体育</button>
+            <button class="category-btn">健康</button>
+        </div>
+        
+        <!-- 精选推荐 -->
+        <div class="section-title">📰 精选推荐</div>
+        <div class="news-card featured-card">
+            <div class="featured-image">
+                <div class="category-tag">科技</div>
+            </div>
+            <div class="card-content">
+                <h2 class="news-title">人工智能技术在医疗领域取得重大突破</h2>
+                <p class="news-summary">最新研究表明，AI辅助诊断系统在癌症早期筛查中展现出超越人类医生的准确率，为精准医疗带来革命性变革...</p>
+                <div class="news-meta">
+                    <span>科技日报</span>
+                    <span>2小时前 · 阅读 12,580</span>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 为你推荐 -->
+        <div class="section-title">📋 为你推荐</div>
+        
+        <div class="compact-card">
+            <div class="thumbnail"></div>
+            <div class="compact-content">
+                <span class="compact-category">财经</span>
+                <h3 class="news-title" style="font-size: 16px; margin-bottom: 8px;">全球芯片短缺危机缓解，供应链逐步恢复正常</h3>
+                <p class="news-summary" style="font-size: 13px; margin-bottom: 10px;">经过两年的紧张局势，全球半导体产业链开始显现复苏迹象...</p>
+                <div class="news-meta" style="font-size: 11px;">
+                    <span>财经网</span>
+                    <span>4小时前</span>
+                </div>
+            </div>
+        </div>
+        
+        <div class="compact-card">
+            <div class="thumbnail"></div>
+            <div class="compact-content">
+                <span class="compact-category">财经</span>
+                <h3 class="news-title" style="font-size: 16px; margin-bottom: 8px;">新能源汽车销量持续攀升，市场渗透率突破30%</h3>
+                <p class="news-summary" style="font-size: 13px; margin-bottom: 10px;">最新数据显示，本月新能源汽车零售销量同比增长85%...</p>
+                <div class="news-meta" style="font-size: 11px;">
+                    <span>汽车行业观察</span>
+                    <span>6小时前</span>
+                </div>
+            </div>
+        </div>
+        
+        <div class="compact-card">
+            <div class="thumbnail"></div>
+            <div class="compact-content">
+                <span class="compact-category">社会</span>
+                <h3 class="news-title" style="font-size: 16px; margin-bottom: 8px;">环保新规实施，企业绿色转型加速推进</h3>
+                <p class="news-summary" style="font-size: 13px; margin-bottom: 10px;">新版环境保护条例正式生效，推动制造业向低碳环保方向转型...</p>
+                <div class="news-meta" style="font-size: 11px;">
+                    <span>环保在线</span>
+                    <span>8小时前</span>
+                </div>
+            </div>
+        </div>
+        
+        <button class="load-more">加载更多</button>
+    </div>
+    
+    <script>
+        function toggleTheme() {
+            const body = document.body;
+            const toggleBtn = document.querySelector('.theme-toggle');
+            
+            if (body.style.backgroundColor === 'rgb(26, 26, 26)') {
+                // 切换到浅色模式
+                body.style.backgroundColor = '#ffffff';
+                body.style.color = '#1e293b';
+                document.querySelectorAll('.news-card, .compact-card').forEach(card => {
+                    card.style.background = '#ffffff';
+                    card.style.border = '1px solid #e2e8f0';
+                });
+                document.querySelector('.header').style.borderBottom = '1px solid #e2e8f0';
+                toggleBtn.textContent = '🌙';
+            } else {
+                // 切换到深色模式
+                body.style.backgroundColor = '#1a1a1a';
+                body.style.color = '#e4e4e4';
+                document.querySelectorAll('.news-card, .compact-card').forEach(card => {
+                    card.style.background = '#252525';
+                    card.style.border = 'none';
+                });
+                document.querySelector('.header').style.borderBottom = '1px solid #3f3f3f';
+                toggleBtn.textContent = '☀️';
+            }
+        }
+        
+        // 分类按钮切换
+        document.querySelectorAll('.category-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                document.querySelectorAll('.category-btn').forEach(b => b.classList.remove('active'));
+                this.classList.add('active');
+            });
+        });
+    </script>
+</body>
+</html>

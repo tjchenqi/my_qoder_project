@@ -1,0 +1,35 @@
+# Docker Compose - 生产环境
+version: '3.8'
+
+services:
+  frontend-prod:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile.prod
+    ports:
+      - "80:80"
+    environment:
+      - NODE_ENV=production
+      
+  backend-prod:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile.prod
+    ports:
+      - "443:443"
+    environment:
+      - NODE_ENV=production
+      - DATABASE_URL=postgresql://prod-user:password@prod-db:5432/news_prod
+    depends_on:
+      - db-prod
+      
+  db-prod:
+    image: postgres:15
+    environment:
+      - POSTGRES_DB=news_prod
+      - POSTGRES_PASSWORD=${DB_PASSWORD}
+    volumes:
+      - prod-data:/var/lib/postgresql/data
+      
+volumes:
+  prod-data:

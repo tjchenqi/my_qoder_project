@@ -1,0 +1,88 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* 基础样式重置 */
+@layer base {
+  body {
+    @apply bg-gray-50 text-gray-900;
+    font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+  }
+  
+  .dark body {
+    @apply bg-gray-900 text-white;
+  }
+}
+
+/* 组件样式 */
+@layer components {
+  /* 滚动条样式 */
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+  
+  /* 文本截断 */
+  .line-clamp-2 {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+  
+  .line-clamp-3 {
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+  
+  /* 卡片悬停效果 */
+  .card-hover {
+    @apply transition-all duration-300;
+  }
+  
+  .card-hover:hover {
+    @apply shadow-lg transform translate-y-[-2px];
+  }
+  
+  /* 深色模式下的特殊样式 */
+  .dark .card-hover:hover {
+    @apply shadow-xl;
+  }
+}
+
+/* 工具类 */
+@layer utilities {
+  /* 文本阴影 */
+  .text-shadow {
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  }
+  
+  .dark .text-shadow {
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+  }
+  
+  /* 渐变边框 */
+  .border-gradient {
+    position: relative;
+  }
+  
+  .border-gradient::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    padding: 1px;
+    background: linear-gradient(45deg, #6366f1, #8b5cf6);
+    -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    -webkit-mask-composite: destination-out;
+    mask-composite: exclude;
+    border-radius: inherit;
+    pointer-events: none;
+  }
+}

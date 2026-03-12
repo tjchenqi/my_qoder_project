@@ -1,0 +1,709 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Daily News - 内容详情</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background-color: #f5f7fa;
+            color: #333;
+            line-height: 1.7;
+        }
+
+        /* 顶部导航 */
+        .header {
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            background: white;
+            padding: 12px 16px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .back-btn {
+            width: 24px;
+            height: 24px;
+            cursor: pointer;
+            color: #6b7280;
+            transition: color 0.2s;
+        }
+
+        .back-btn:hover {
+            color: #2563eb;
+        }
+
+        .header-title {
+            flex: 1;
+            font-size: 18px;
+            font-weight: 600;
+            color: #1f2937;
+            text-align: center;
+        }
+
+        .more-btn {
+            width: 24px;
+            height: 24px;
+            cursor: pointer;
+            color: #6b7280;
+        }
+
+        /* 文章内容区 */
+        .article-container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            min-height: 100vh;
+        }
+
+        .article-header {
+            padding: 24px 20px 16px;
+        }
+
+        .article-title {
+            font-size: 24px;
+            font-weight: 700;
+            line-height: 1.4;
+            color: #1f2937;
+            margin-bottom: 16px;
+        }
+
+        .article-meta {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 16px;
+            font-size: 14px;
+            color: #6b7280;
+            margin-bottom: 20px;
+        }
+
+        .meta-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .article-cover {
+            width: 100%;
+            height: 220px;
+            background: linear-gradient(45deg, #2563eb, #3b82f6);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 18px;
+            margin-bottom: 24px;
+        }
+
+        .article-body {
+            padding: 0 20px 24px;
+        }
+
+        .article-content {
+            font-size: 16px;
+            color: #374151;
+            margin-bottom: 24px;
+        }
+
+        .article-content p {
+            margin-bottom: 16px;
+            text-align: justify;
+        }
+
+        .article-content h2 {
+            font-size: 20px;
+            font-weight: 600;
+            margin: 24px 0 16px;
+            color: #1f2937;
+            padding-bottom: 8px;
+            border-bottom: 2px solid #e5e7eb;
+        }
+
+        .article-content h3 {
+            font-size: 18px;
+            font-weight: 600;
+            margin: 20px 0 12px;
+            color: #1f2937;
+        }
+
+        .highlight-term {
+            background: #fffbeb;
+            border-bottom: 2px solid #f59e0b;
+            padding: 0 2px;
+            font-weight: 500;
+        }
+
+        /* 标签区域 */
+        .article-tags {
+            padding: 20px;
+            border-top: 1px solid #f3f4f6;
+            border-bottom: 1px solid #f3f4f6;
+        }
+
+        .tags-title {
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 12px;
+            color: #1f2937;
+        }
+
+        .tag-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .tag {
+            background: #eff6ff;
+            color: #2563eb;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        /* AI解读区域 */
+        .ai-insight {
+            background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+            border-left: 4px solid #0ea5e9;
+            margin: 24px 0;
+            padding: 20px;
+            border-radius: 0 8px 8px 0;
+        }
+
+        .ai-insight-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 12px;
+        }
+
+        .ai-avatar {
+            width: 32px;
+            height: 32px;
+            background: #0ea5e9;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            font-size: 14px;
+        }
+
+        .ai-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: #0c4a6e;
+        }
+
+        .ai-content {
+            color: #0c4a6e;
+            font-size: 15px;
+            line-height: 1.6;
+        }
+
+        /* 相关推荐 */
+        .related-section {
+            padding: 20px;
+            background: #f9fafb;
+        }
+
+        .section-title {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 16px;
+            color: #1f2937;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .related-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .related-item {
+            background: white;
+            border-radius: 8px;
+            padding: 16px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .related-item:hover {
+            transform: translateX(4px);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .related-title {
+            font-size: 15px;
+            font-weight: 500;
+            color: #1f2937;
+            margin-bottom: 8px;
+            line-height: 1.4;
+        }
+
+        .related-meta {
+            display: flex;
+            justify-content: space-between;
+            font-size: 12px;
+            color: #9ca3af;
+        }
+
+        /* 底部操作栏 */
+        .bottom-actions {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: white;
+            border-top: 1px solid #e5e7eb;
+            padding: 12px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 100;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 20px;
+        }
+
+        .action-button {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+            background: none;
+            border: none;
+            color: #6b7280;
+            font-size: 12px;
+            cursor: pointer;
+            padding: 6px 12px;
+            border-radius: 8px;
+            transition: all 0.2s;
+        }
+
+        .action-button:hover {
+            background: #f3f4f6;
+            color: #2563eb;
+        }
+
+        .action-button.active {
+            color: #2563eb;
+        }
+
+        .action-icon {
+            width: 20px;
+            height: 20px;
+        }
+
+        .share-button {
+            background: #2563eb;
+            color: white;
+            border: none;
+            border-radius: 20px;
+            padding: 10px 24px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .share-button:hover {
+            background: #1d4ed8;
+        }
+
+        /* 阅读进度条 */
+        .reading-progress {
+            position: fixed;
+            top: 0;
+            left: 0;
+            height: 3px;
+            background: #2563eb;
+            z-index: 101;
+            transition: width 0.1s ease;
+        }
+
+        /* 夜间模式切换 */
+        .theme-toggle {
+            position: fixed;
+            top: 100px;
+            right: 20px;
+            width: 40px;
+            height: 40px;
+            background: white;
+            border-radius: 50%;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            z-index: 99;
+            transition: all 0.3s;
+        }
+
+        .theme-toggle:hover {
+            transform: scale(1.1);
+        }
+
+        /* 响应式设计 */
+        @media (max-width: 768px) {
+            .article-title {
+                font-size: 20px;
+            }
+            
+            .article-cover {
+                height: 160px;
+            }
+            
+            .header {
+                padding: 12px;
+            }
+            
+            .article-header, .article-body {
+                padding: 16px;
+            }
+        }
+
+        /* 夜间模式样式 */
+        body.night-mode {
+            background-color: #1f2937;
+            color: #d1d5db;
+        }
+
+        body.night-mode .article-container {
+            background: #111827;
+        }
+
+        body.night-mode .header {
+            background: #111827;
+            color: #d1d5db;
+        }
+
+        body.night-mode .article-title {
+            color: #f9fafb;
+        }
+
+        body.night-mode .article-content {
+            color: #d1d5db;
+        }
+
+        body.night-mode .article-content h2,
+        body.night-mode .article-content h3 {
+            color: #f9fafb;
+        }
+
+        body.night-mode .ai-insight {
+            background: #1e3a8a;
+            border-left-color: #3b82f6;
+        }
+
+        body.night-mode .ai-title,
+        body.night-mode .ai-content {
+            color: #bfdbfe;
+        }
+
+        body.night-mode .related-section {
+            background: #1f2937;
+        }
+
+        body.night-mode .related-item {
+            background: #374151;
+        }
+
+        body.night-mode .related-title {
+            color: #f9fafb;
+        }
+    </style>
+</head>
+<body>
+    <!-- 阅读进度条 -->
+    <div class="reading-progress" id="readingProgress"></div>
+
+    <!-- 夜间模式切换 -->
+    <div class="theme-toggle" id="themeToggle">
+        <svg viewBox="0 0 24 24" fill="currentColor" width="20" height="20">
+            <path d="M12 2.25a.75.75 0 01.75.75v2.25a.75.75 0 01-1.5 0V3a.75.75 0 01.75-.75zM7.5 12a4.5 4.5 0 119 0 4.5 4.5 0 01-9 0zM18.894 6.166a.75.75 0 00-1.06-1.06l-1.591 1.59a.75.75 0 101.06 1.061l1.591-1.59zM21.75 12a.75.75 0 01-.75.75h-2.25a.75.75 0 010-1.5H21a.75.75 0 01.75.75zM17.834 18.894a.75.75 0 001.06-1.06l-1.59-1.591a.75.75 0 10-1.061 1.06l1.59 1.591zM12 18a.75.75 0 01.75.75V21a.75.75 0 01-1.5 0v-2.25A.75.75 0 0112 18zM7.758 17.303a.75.75 0 00-1.061-1.06l-1.591 1.59a.75.75 0 001.06 1.061l1.591-1.59zM6 12a.75.75 0 01-.75.75H3a.75.75 0 010-1.5h2.25A.75.75 0 016 12zM6.697 7.757a.75.75 0 001.06-1.06l-1.59-1.591a.75.75 0 00-1.061 1.06l1.59 1.591z"/>
+        </svg>
+    </div>
+
+    <!-- 顶部导航 -->
+    <header class="header">
+        <svg class="back-btn" viewBox="0 0 24 24" fill="currentColor" onclick="goBack()">
+            <path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/>
+        </svg>
+        <div class="header-title">文章详情</div>
+        <svg class="more-btn" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M12 8c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm0 2c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0 6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z"/>
+        </svg>
+    </header>
+
+    <!-- 文章内容 -->
+    <article class="article-container">
+        <div class="article-header">
+            <h1 class="article-title">OpenAI发布新一代GPT-5模型，在多项基准测试中表现超越人类</h1>
+            
+            <div class="article-meta">
+                <div class="meta-item">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
+                    </svg>
+                    <span>已通过审核</span>
+                </div>
+                <div class="meta-item">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+                    </svg>
+                    <span>4.8分</span>
+                </div>
+                <div class="meta-item">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8z"/>
+                        <path d="M12.5 7H11v6l5.25 3.15.75-1.23-4.5-2.67z"/>
+                    </svg>
+                    <span>2小时前</span>
+                </div>
+                <div class="meta-item">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
+                    </svg>
+                    <span>TechCrunch</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="article-cover">
+            AI技术突破新闻封面图
+        </div>
+
+        <div class="article-body">
+            <div class="article-content">
+                <p>人工智能领域再次迎来重大突破。OpenAI今日正式发布了其最新一代<span class="highlight-term">大语言模型</span>GPT-5，这一革命性的技术成果在多项行业基准测试中展现出了超越人类的表现。</p>
+
+                <h2>技术规格与性能提升</h2>
+                
+                <p>据OpenAI首席科学家介绍，GPT-5相比前代产品在以下几个关键指标上实现了显著提升：</p>
+                
+                <p><strong>参数规模：</strong>达到前所未有的2万亿参数量，是GPT-4的4倍之多。这一庞大的参数规模使得模型能够更好地理解和生成复杂的语言结构。</p>
+                
+                <p><strong>训练数据：</strong>使用了超过10万亿个token的多样化数据集进行训练，涵盖了科学文献、技术文档、文学作品等多个领域。</p>
+
+                <h3>实际应用表现</h3>
+                
+                <p>在GLUE基准测试中，GPT-5获得了92.3分的成绩，首次超过了人类平均水平（91.8分）。特别是在以下几个子任务中表现突出：</p>
+                
+                <ul>
+                    <li>自然语言推理：95.7分（人类平均：93.2分）</li>
+                    <li>语义相似度判断：94.1分（人类平均：91.5分）</li>
+                    <li>情感分析：96.8分（人类平均：94.3分）</li>
+                </ul>
+
+                <h2>创新功能特性</h2>
+                
+                <p>GPT-5引入了多项创新功能，包括：</p>
+                
+                <p><strong>多模态理解能力：</strong>除了文本处理外，还能够理解和生成图像、音频等多种媒体内容，真正实现了<span class="highlight-term">通用人工智能</span>的目标。</p>
+                
+                <p><strong>实时学习机制：</strong>具备在线学习能力，能够在与用户的交互过程中不断优化自己的表现。</p>
+                
+                <p><strong>个性化适配：</strong>可以根据不同用户的需求和偏好调整输出风格和内容深度。</p>
+
+                <h2>行业影响与展望</h2>
+                
+                <p>这一技术突破预计将对多个行业产生深远影响：</p>
+                
+                <p>教育领域将迎来个性化学习助手的新时代，医疗诊断辅助系统将变得更加精准，法律咨询服务将更加普及和便民。同时，这也引发了关于AI伦理和就业影响的新一轮讨论。</p>
+                
+                <p>OpenAI表示，将在确保安全的前提下逐步开放GPT-5的各项功能，并与各行业合作伙伴共同探索其应用潜力。</p>
+            </div>
+
+            <!-- AI智能解读 -->
+            <div class="ai-insight">
+                <div class="ai-insight-header">
+                    <div class="ai-avatar">AI</div>
+                    <div class="ai-title">AI深度解读</div>
+                </div>
+                <div class="ai-content">
+                    <p>这次GPT-5的发布标志着大语言模型发展进入了一个新的阶段。从技术角度来看，2万亿参数的规模虽然令人印象深刻，但更重要的是其在推理能力和知识整合方面的突破。</p>
+                    <p>值得注意的是，OpenAI在发布中强调的安全措施和逐步开放策略，体现了业界对于AI发展的理性态度。这种负责任的创新方式值得其他科技公司借鉴。</p>
+                    <p>对于普通用户而言，这意味着我们将获得更智能、更个性化的AI助手，但同时也需要适应与AI共存的新生活方式。</p>
+                </div>
+            </div>
+
+            <!-- 标签 -->
+            <div class="article-tags">
+                <div class="tags-title">相关标签</div>
+                <div class="tag-list">
+                    <div class="tag">大语言模型</div>
+                    <div class="tag">GPT-5</div>
+                    <div class="tag">人工智能</div>
+                    <div class="tag">技术突破</div>
+                    <div class="tag">OpenAI</div>
+                    <div class="tag">自然语言处理</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 相关推荐 -->
+        <div class="related-section">
+            <div class="section-title">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+                </svg>
+                相关推荐
+            </div>
+            <div class="related-list">
+                <div class="related-item">
+                    <div class="related-title">谷歌DeepMind发布新型强化学习算法，在游戏AI领域取得突破</div>
+                    <div class="related-meta">
+                        <span>Nature • 3小时前</span>
+                        <span>阅读量: 1.2k</span>
+                    </div>
+                </div>
+                <div class="related-item">
+                    <div class="related-title">微软Azure推出AI超级计算平台，支持大规模模型训练</div>
+                    <div class="related-meta">
+                        <span>The Verge • 5小时前</span>
+                        <span>阅读量: 890</span>
+                    </div>
+                </div>
+                <div class="related-item">
+                    <div class="related-title">Anthropic发布Claude 3，专注对话安全性和可控性</div>
+                    <div class="related-meta">
+                        <span>TechCrunch • 1天前</span>
+                        <span>阅读量: 2.1k</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </article>
+
+    <!-- 底部操作栏 -->
+    <div class="bottom-actions">
+        <div class="action-buttons">
+            <button class="action-button" id="favoriteBtn">
+                <svg class="action-icon" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
+                </svg>
+                <span>收藏</span>
+            </button>
+            <button class="action-button" id="commentBtn">
+                <svg class="action-icon" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M21.99 4c0-1.1-.89-2-2-2H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h14l4 4-.01-18zM18 14H6v-2h12v2zm0-3H6V9h12v2zm0-3H6V6h12v2z"/>
+                </svg>
+                <span>评论</span>
+            </button>
+            <button class="action-button" id="shareBtn">
+                <svg class="action-icon" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.04-.47-.09-.7l7.05-4.11c.54.5 1.25.81 2.04.81 1.66 0 3-1.34 3-3s-1.34-3-3-3-3 1.34-3 3c0 .24.04.47.09.7L8.04 9.81C7.5 9.31 6.79 9 6 9c-1.66 0-3 1.34-3 3s1.34 3 3 3c.79 0 1.5-.31 2.04-.81l7.12 4.16c-.05.21-.08.43-.08.65 0 1.61 1.31 2.92 2.92 2.92 1.61 0 2.92-1.31 2.92-2.92s-1.31-2.92-2.92-2.92z"/>
+                </svg>
+                <span>分享</span>
+            </button>
+        </div>
+        <button class="share-button" id="aiAskBtn">
+            AI问答
+        </button>
+    </div>
+
+    <script>
+        // 阅读进度条
+        function updateReadingProgress() {
+            const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+            const docHeight = document.documentElement.scrollHeight - document.documentElement.clientHeight;
+            const scrollPercent = (scrollTop / docHeight) * 100;
+            document.getElementById('readingProgress').style.width = scrollPercent + '%';
+        }
+
+        window.addEventListener('scroll', updateReadingProgress);
+
+        // 夜间模式切换
+        document.getElementById('themeToggle').addEventListener('click', function() {
+            document.body.classList.toggle('night-mode');
+            const isNight = document.body.classList.contains('night-mode');
+            localStorage.setItem('theme', isNight ? 'night' : 'light');
+        });
+
+        // 恢复主题设置
+        if (localStorage.getItem('theme') === 'night') {
+            document.body.classList.add('night-mode');
+        }
+
+        // 收藏功能
+        document.getElementById('favoriteBtn').addEventListener('click', function() {
+            this.classList.toggle('active');
+            const isActive = this.classList.contains('active');
+            alert(isActive ? '已收藏' : '取消收藏');
+            // 这里应该调用后台收藏API
+        });
+
+        // 评论功能
+        document.getElementById('commentBtn').addEventListener('click', function() {
+            alert('打开评论功能');
+            // 这里应该跳转到评论页面或打开评论弹窗
+        });
+
+        // 分享功能
+        document.getElementById('shareBtn').addEventListener('click', function() {
+            if (navigator.share) {
+                navigator.share({
+                    title: document.querySelector('.article-title').textContent,
+                    url: window.location.href
+                });
+            } else {
+                alert('分享功能已复制链接');
+                // 这里应该实现复制链接功能
+            }
+        });
+
+        // AI问答功能
+        document.getElementById('aiAskBtn').addEventListener('click', function() {
+            alert('跳转到AI问答页面');
+            // 这里应该跳转到AI问答页面
+        });
+
+        // 返回功能
+        function goBack() {
+            // 如果有历史记录则返回，否则跳转到首页
+            if (window.history.length > 1) {
+                window.history.back();
+            } else {
+                window.location.href = './frontend-home.html';
+            }
+        }
+
+        // 相关推荐点击
+        document.querySelectorAll('.related-item').forEach(item => {
+            item.addEventListener('click', function() {
+                const title = this.querySelector('.related-title').textContent;
+                alert(`查看相关文章: ${title}`);
+                // 这里应该跳转到相关文章详情页
+            });
+        });
+
+        // 高亮术语点击
+        document.querySelectorAll('.highlight-term').forEach(term => {
+            term.addEventListener('click', function() {
+                const termText = this.textContent;
+                alert(`AI正在为您解释: ${termText}\n\n这是一个重要的AI技术概念...`);
+                // 这里应该调用AI解释API
+            });
+        });
+    </script>
+</body>
+</html>

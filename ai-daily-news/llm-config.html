@@ -1,0 +1,432 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Daily News 大模型配置管理</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: #f8fafc; color: #1e293b; height: 100vh; overflow: hidden;
+        }
+
+        .sidebar { width: 240px; height: 100vh; background: #1e293b; position: fixed; left: 0; top: 0; padding: 24px 0; }
+        .nav-item.active { background: #4f46e5; color: white; }
+        .main-content { margin-left: 240px; height: 100vh; display: flex; flex-direction: column; }
+        .top-nav { height: 64px; background: white; border-bottom: 1px solid #e2e8f0; display: flex; align-items: center; justify-content: space-between; padding: 0 24px; }
+        .content-area { flex: 1; padding: 24px; overflow-y: auto; }
+        .card { background: white; border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); margin-bottom: 24px; }
+        .card-header { padding: 20px 24px; border-bottom: 1px solid #f1f5f9; display: flex; justify-content: space-between; align-items: center; }
+        .card-title { font-size: 18px; font-weight: 600; color: #1e293b; }
+        .card-body { padding: 24px; }
+        
+        .model-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); gap: 24px; }
+        .model-card { border: 1px solid #e2e8f0; border-radius: 12px; padding: 20px; transition: all 0.2s ease; }
+        .model-card:hover { transform: translateY(-2px); box-shadow: 0 10px 25px rgba(0,0,0,0.1); border-color: #4f46e5; }
+        .model-card.active { border-color: #4f46e5; background: #f0f9ff; }
+        
+        .model-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 16px; }
+        .model-name { font-size: 16px; font-weight: 600; color: #1e293b; }
+        .model-provider { font-size: 12px; color: #64748b; background: #f1f5f9; padding: 2px 8px; border-radius: 12px; }
+        .model-status { padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: 500; }
+        .status-active { background: #dcfce7; color: #166534; }
+        .status-inactive { background: #fee2e2; color: #991b1b; }
+        
+        .form-group { margin-bottom: 20px; }
+        .form-label { display: block; margin-bottom: 8px; font-weight: 500; color: #334155; }
+        .form-input, .form-select, .form-textarea { width: 100%; padding: 10px 12px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 14px; }
+        .form-textarea { min-height: 100px; resize: vertical; font-family: monospace; }
+        
+        .btn { padding: 10px 20px; border-radius: 6px; font-size: 14px; font-weight: 500; cursor: pointer; border: none; transition: all 0.2s ease; }
+        .btn.primary { background: #4f46e5; color: white; }
+        .btn.secondary { background: #f1f5f9; color: #334155; }
+        .btn.success { background: #10b981; color: white; }
+        .btn.danger { background: #ef4444; color: white; }
+        
+        .api-key-input { font-family: monospace; letter-spacing: 2px; }
+        .usage-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-top: 16px; }
+        .stat-box { background: #f8fafc; padding: 12px; border-radius: 8px; text-align: center; }
+        .stat-value { font-size: 20px; font-weight: 700; color: #4f46e5; }
+        .stat-label { font-size: 12px; color: #64748b; margin-top: 4px; }
+        
+        .translation-config { background: #fffbeb; border-left: 4px solid #f59e0b; padding: 16px; border-radius: 8px; margin: 20px 0; }
+        .config-section { background: #f8fafc; border-radius: 8px; padding: 20px; margin-bottom: 24px; }
+        .section-title { font-size: 16px; font-weight: 600; margin-bottom: 16px; color: #1e293b; display: flex; align-items: center; gap: 8px; }
+    </style>
+</head>
+<body>
+    <!-- 侧边栏 -->
+    <div class="sidebar">
+        <div class="logo" style="padding: 0 24px 24px; border-bottom: 1px solid #334155; margin-bottom: 24px;">
+            <div class="logo-text" style="color: white; font-size: 20px; font-weight: 700; display: flex; align-items: center; gap: 8px;">
+                <span>🤖</span><span>AI News Admin</span>
+            </div>
+        </div>
+        
+        <div class="nav-menu" style="padding: 0 12px;">
+            <div class="nav-item" style="display: flex; align-items: center; gap: 12px; padding: 12px 16px; border-radius: 8px; margin-bottom: 4px; cursor: pointer; color: #94a3b8; font-size: 14px; font-weight: 500;">
+                <div>📊</div><span>仪表板</span>
+            </div>
+            <div class="nav-item" style="display: flex; align-items: center; gap: 12px; padding: 12px 16px; border-radius: 8px; margin-bottom: 4px; cursor: pointer; color: #94a3b8; font-size: 14px; font-weight: 500;">
+                <div>👥</div><span>用户管理</span>
+            </div>
+            <div class="nav-item" style="display: flex; align-items: center; gap: 12px; padding: 12px 16px; border-radius: 8px; margin-bottom: 4px; cursor: pointer; color: #94a3b8; font-size: 14px; font-weight: 500;">
+                <div>📰</div><span>内容管理</span>
+            </div>
+            <div class="nav-item active" style="display: flex; align-items: center; gap: 12px; padding: 12px 16px; border-radius: 8px; margin-bottom: 4px; cursor: pointer; color: white; font-size: 14px; font-weight: 500; background: #4f46e5;">
+                <div>🤖</div><span>Agent管理</span>
+            </div>
+            <div class="nav-item" style="display: flex; align-items: center; gap: 12px; padding: 12px 16px; border-radius: 8px; margin-bottom: 4px; cursor: pointer; color: #94a3b8; font-size: 14px; font-weight: 500;">
+                <div>⚙️</div><span>系统配置</span>
+            </div>
+            <div class="nav-item" style="display: flex; align-items: center; gap: 12px; padding: 12px 16px; border-radius: 8px; margin-bottom: 4px; cursor: pointer; color: #94a3b8; font-size: 14px; font-weight: 500;">
+                <div>📈</div><span>数据分析</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- 主内容区 -->
+    <div class="main-content">
+        <!-- 顶部导航 -->
+        <div class="top-nav">
+            <div class="breadcrumb" style="display: flex; align-items: center; gap: 8px; color: #64748b; font-size: 14px;">
+                <span>管理后台</span>
+                <span>/</span>
+                <span>Agent管理</span>
+                <span>/</span>
+                <span class="breadcrumb-current" style="color: #1e293b; font-weight: 500;">大模型配置</span>
+            </div>
+            <div class="user-profile" style="display: flex; align-items: center; gap: 12px;">
+                <div class="avatar" style="width: 36px; height: 36px; border-radius: 50%; background: #4f46e5; display: flex; align-items: center; justify-content: center; color: white; font-weight: 600;">A</div>
+                <span>管理员</span>
+            </div>
+        </div>
+
+        <!-- 内容区域 -->
+        <div class="content-area">
+            <!-- 多语言新闻采集说明 -->
+            <div class="translation-config">
+                <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 12px;">
+                    <span style="font-size: 20px;">🌐</span>
+                    <h3 style="font-size: 16px; font-weight: 600; color: #92400e;">多语言新闻采集配置</h3>
+                </div>
+                <p style="color: #92400e; line-height: 1.6; margin-bottom: 12px;">
+                    系统支持采集国外英文新闻源，并通过国产大模型进行翻译和内容处理，实现中文化的AI新闻服务。
+                </p>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; font-size: 14px;">
+                    <div>
+                        <strong>采集阶段：</strong> 英文新闻源抓取
+                    </div>
+                    <div>
+                        <strong>处理阶段：</strong> 阿里千问/Qwen进行翻译和摘要
+                    </div>
+                </div>
+            </div>
+
+            <!-- 大模型配置网格 -->
+            <div class="model-grid">
+                <!-- 阿里千问配置 -->
+                <div class="model-card active">
+                    <div class="model-header">
+                        <div>
+                            <div class="model-name">阿里千问 (Qwen)</div>
+                            <div class="model-provider">阿里云</div>
+                        </div>
+                        <div class="model-status status-active">已启用</div>
+                    </div>
+                    
+                    <div class="config-section">
+                        <div class="section-title">
+                            <span>🔑</span>
+                            <span>API配置</span>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label class="form-label">API Key</label>
+                            <input type="password" class="form-input api-key-input" placeholder="sk-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label class="form-label">模型版本</label>
+                            <select class="form-select">
+                                <option>qwen-max</option>
+                                <option selected>qwen-plus</option>
+                                <option>qwen-turbo</option>
+                            </select>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label class="form-label">API Endpoint</label>
+                            <input type="text" class="form-input" value="https://dashscope.aliyuncs.com/api/v1/services/aigc/text-generation/generation">
+                        </div>
+                    </div>
+                    
+                    <div class="config-section">
+                        <div class="section-title">
+                            <span>⚙️</span>
+                            <span>参数配置</span>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label class="form-label">Temperature (创造性)</label>
+                            <input type="range" min="0" max="1" step="0.1" value="0.7" class="form-input">
+                            <div style="display: flex; justify-content: space-between; font-size: 12px; color: #64748b; margin-top: 4px;">
+                                <span>0 (精确)</span>
+                                <span>0.7</span>
+                                <span>1 (创意)</span>
+                            </div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label class="form-label">最大Token数</label>
+                            <input type="number" class="form-input" value="2000" min="100" max="8000">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label class="form-label">Top P</label>
+                            <input type="number" class="form-input" value="0.8" min="0" max="1" step="0.1">
+                        </div>
+                    </div>
+                    
+                    <div class="usage-stats">
+                        <div class="stat-box">
+                            <div class="stat-value">1,248</div>
+                            <div class="stat-label">今日调用次数</div>
+                        </div>
+                        <div class="stat-box">
+                            <div class="stat-value">¥24.8</div>
+                            <div class="stat-label">今日费用</div>
+                        </div>
+                        <div class="stat-box">
+                            <div class="stat-value">98.5%</div>
+                            <div class="stat-label">成功率</div>
+                        </div>
+                    </div>
+                    
+                    <div style="display: flex; gap: 12px; margin-top: 20px;">
+                        <button class="btn secondary" style="flex: 1;">测试连接</button>
+                        <button class="btn primary" style="flex: 1;">保存配置</button>
+                    </div>
+                </div>
+
+                <!-- 百度文心一言配置 -->
+                <div class="model-card">
+                    <div class="model-header">
+                        <div>
+                            <div class="model-name">文心一言 (ERNIE Bot)</div>
+                            <div class="model-provider">百度</div>
+                        </div>
+                        <div class="model-status status-inactive">未启用</div>
+                    </div>
+                    
+                    <div class="config-section">
+                        <div class="section-title">
+                            <span>🔑</span>
+                            <span>API配置</span>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label class="form-label">API Key</label>
+                            <input type="password" class="form-input api-key-input" placeholder="请输入API Key">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label class="form-label">Secret Key</label>
+                            <input type="password" class="form-input api-key-input" placeholder="请输入Secret Key">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label class="form-label">模型版本</label>
+                            <select class="form-select">
+                                <option>ernie-bot</option>
+                                <option>ernie-bot-turbo</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div style="margin-top: 20px;">
+                        <button class="btn secondary" style="width: 100%;">配置此模型</button>
+                    </div>
+                </div>
+
+                <!-- 讯飞星火配置 -->
+                <div class="model-card">
+                    <div class="model-header">
+                        <div>
+                            <div class="model-name">讯飞星火 (Spark)</div>
+                            <div class="model-provider">科大讯飞</div>
+                        </div>
+                        <div class="model-status status-inactive">未启用</div>
+                    </div>
+                    
+                    <div class="config-section">
+                        <div class="section-title">
+                            <span>🔑</span>
+                            <span>API配置</span>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label class="form-label">APP ID</label>
+                            <input type="text" class="form-input" placeholder="请输入APP ID">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label class="form-label">API Key</label>
+                            <input type="password" class="form-input api-key-input" placeholder="请输入API Key">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label class="form-label">API Secret</label>
+                            <input type="password" class="form-input api-key-input" placeholder="请输入API Secret">
+                        </div>
+                    </div>
+                    
+                    <div style="margin-top: 20px;">
+                        <button class="btn secondary" style="width: 100%;">配置此模型</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 翻译配置 -->
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-title">🌐 多语言处理配置</div>
+                </div>
+                <div class="card-body">
+                    <div class="config-section">
+                        <div class="section-title">
+                            <span>🔤</span>
+                            <span>翻译规则配置</span>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label class="form-label">源语言检测</label>
+                            <select class="form-select">
+                                <option selected>自动检测</option>
+                                <option>英文</option>
+                                <option>日文</option>
+                                <option>韩文</option>
+                            </select>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label class="form-label">目标语言</label>
+                            <select class="form-select">
+                                <option selected>中文</option>
+                                <option>英文</option>
+                            </select>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label class="form-label">翻译质量要求</label>
+                            <select class="form-select">
+                                <option>标准翻译</option>
+                                <option selected>专业级翻译</option>
+                                <option>学术级翻译</option>
+                            </select>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label class="form-label">术语库配置</label>
+                            <textarea class="form-textarea" placeholder="AI=人工智能
+ML=机器学习
+DL=深度学习
+NLP=自然语言处理">AI=人工智能
+ML=机器学习
+DL=深度学习
+NLP=自然语言处理</textarea>
+                        </div>
+                    </div>
+                    
+                    <div class="config-section">
+                        <div class="section-title">
+                            <span>📋</span>
+                            <span>内容处理配置</span>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label class="form-label">摘要生成模板</label>
+                            <textarea class="form-textarea" placeholder="请为这篇英文新闻生成中文摘要，要求：
+1. 保留核心信息和关键数据
+2. 语言简洁明了
+3. 字数控制在150字以内">请为这篇英文新闻生成中文摘要，要求：
+1. 保留核心信息和关键数据
+2. 语言简洁明了
+3. 字数控制在150字以内</textarea>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label class="form-label">关键词提取规则</label>
+                            <textarea class="form-textarea" placeholder="请从这篇新闻中提取5-8个最重要的关键词，用中文返回">请从这篇新闻中提取5-8个最重要的关键词，用中文返回</textarea>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label class="form-label">分类标记Prompt</label>
+                            <textarea class="form-textarea" placeholder="请将这篇新闻分类到以下类别中：技术前沿、产业动态、投融资、政策法规、学术研究、人物访谈。只需返回类别名称。">请将这篇新闻分类到以下类别中：技术前沿、产业动态、投融资、政策法规、学术研究、人物访谈。只需返回类别名称。</textarea>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 模型卡片切换
+        document.querySelectorAll('.model-card').forEach(card => {
+            card.addEventListener('click', function() {
+                document.querySelectorAll('.model-card').forEach(c => c.classList.remove('active'));
+                this.classList.add('active');
+            });
+        });
+
+        // API测试功能
+        document.querySelectorAll('.btn.secondary').forEach(btn => {
+            if (btn.textContent.includes('测试')) {
+                btn.addEventListener('click', function() {
+                    const originalText = this.textContent;
+                    this.textContent = '测试中...';
+                    this.disabled = true;
+                    
+                    setTimeout(() => {
+                        this.textContent = '✓ 连接成功';
+                        this.classList.remove('secondary');
+                        this.classList.add('success');
+                        
+                        setTimeout(() => {
+                            this.textContent = originalText;
+                            this.classList.remove('success');
+                            this.classList.add('secondary');
+                            this.disabled = false;
+                        }, 2000);
+                    }, 1500);
+                });
+            }
+        });
+
+        // 保存配置功能
+        document.querySelectorAll('.btn.primary').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const originalText = this.textContent;
+                this.textContent = '保存中...';
+                this.disabled = true;
+                
+                setTimeout(() => {
+                    this.textContent = '✓ 保存成功';
+                    this.classList.remove('primary');
+                    this.classList.add('success');
+                    
+                    setTimeout(() => {
+                        this.textContent = originalText;
+                        this.classList.remove('success');
+                        this.classList.add('primary');
+                        this.disabled = false;
+                    }, 2000);
+                }, 1500);
+            });
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,612 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Daily News 高保真原型演示</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+
+        .prototype-container {
+            max-width: 414px;
+            height: 896px;
+            margin: 20px auto;
+            background: white;
+            border-radius: 40px;
+            overflow: hidden;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+            position: relative;
+        }
+
+        .phone-frame {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            border: 12px solid #1a1a1a;
+            border-radius: 40px;
+            pointer-events: none;
+        }
+
+        .screen {
+            width: 100%;
+            height: 100%;
+            overflow-y: auto;
+            position: relative;
+        }
+
+        /* 导航栏样式 */
+        .navbar {
+            position: sticky;
+            top: 0;
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid #e5e7eb;
+            padding: 16px;
+            z-index: 10;
+        }
+
+        .navbar-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-size: 20px;
+            font-weight: 700;
+            color: #1f2937;
+        }
+
+        .nav-icons {
+            display: flex;
+            gap: 12px;
+        }
+
+        .nav-icon {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: #f3f4f6;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .nav-icon:hover {
+            background: #e5e7eb;
+        }
+
+        /* 期刊信息 */
+        .issue-info {
+            text-align: center;
+            padding: 16px 0;
+        }
+
+        .issue-number {
+            font-size: 14px;
+            color: #6b7280;
+            margin-bottom: 4px;
+        }
+
+        .issue-date {
+            font-size: 18px;
+            font-weight: 600;
+            color: #1f2937;
+        }
+
+        /* 内容区域 */
+        .content-section {
+            padding: 24px 16px;
+        }
+
+        .section-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #1f2937;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        /* 轮播卡片 */
+        .carousel-container {
+            position: relative;
+            border-radius: 16px;
+            overflow: hidden;
+            margin-bottom: 16px;
+        }
+
+        .carousel-slide {
+            display: none;
+            animation: fadeIn 0.5s ease-in-out;
+        }
+
+        .carousel-slide.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateX(20px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+
+        .featured-card {
+            background: linear-gradient(135deg, #4f46e5, #7c3aed);
+            border-radius: 16px;
+            padding: 24px;
+            color: white;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .featured-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(45deg, rgba(255,255,255,0.1), transparent);
+        }
+
+        .category-tag {
+            background: rgba(255, 255, 255, 0.2);
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 500;
+            display: inline-block;
+            margin-bottom: 12px;
+            backdrop-filter: blur(4px);
+        }
+
+        .featured-title {
+            font-size: 20px;
+            font-weight: 700;
+            margin-bottom: 12px;
+            line-height: 1.4;
+        }
+
+        .featured-excerpt {
+            font-size: 14px;
+            opacity: 0.9;
+            line-height: 1.5;
+            margin-bottom: 16px;
+        }
+
+        .featured-meta {
+            display: flex;
+            justify-content: space-between;
+            font-size: 12px;
+            opacity: 0.8;
+        }
+
+        /* 轮播指示器 */
+        .carousel-indicators {
+            display: flex;
+            justify-content: center;
+            gap: 6px;
+            margin-top: 16px;
+        }
+
+        .indicator {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #d1d5db;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .indicator.active {
+            background: #4f46e5;
+            transform: scale(1.2);
+        }
+
+        /* 新闻卡片 */
+        .news-card {
+            background: white;
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 12px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            transition: all 0.2s ease;
+            cursor: pointer;
+        }
+
+        .news-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+
+        .news-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 12px;
+        }
+
+        .news-category {
+            background: #eef2ff;
+            color: #4f46e5;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 11px;
+            font-weight: 500;
+        }
+
+        .news-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: #1f2937;
+            margin-bottom: 8px;
+            line-height: 1.4;
+        }
+
+        .news-meta {
+            display: flex;
+            justify-content: space-between;
+            font-size: 12px;
+            color: #6b7280;
+        }
+
+        /* 底部导航 */
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 414px;
+            background: white;
+            border-top: 1px solid #e5e7eb;
+            padding: 12px 0;
+        }
+
+        .nav-items {
+            display: flex;
+            justify-content: space-around;
+        }
+
+        .nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+            padding: 8px 16px;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .nav-item.active {
+            background: #eef2ff;
+            color: #4f46e5;
+        }
+
+        .nav-icon-svg {
+            width: 24px;
+            height: 24px;
+        }
+
+        .nav-label {
+            font-size: 12px;
+            font-weight: 500;
+        }
+
+        /* 交互提示 */
+        .interaction-hint {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: rgba(0,0,0,0.8);
+            color: white;
+            padding: 12px 16px;
+            border-radius: 8px;
+            font-size: 14px;
+            z-index: 100;
+            max-width: 300px;
+        }
+
+        /* 响应式调整 */
+        @media (max-width: 480px) {
+            .prototype-container {
+                width: 100%;
+                height: 100vh;
+                border-radius: 0;
+            }
+            
+            .bottom-nav {
+                width: 100%;
+                left: 0;
+                transform: none;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="prototype-container">
+        <div class="phone-frame"></div>
+        <div class="screen" id="screen">
+            <!-- 顶部导航栏 -->
+            <div class="navbar">
+                <div class="navbar-content">
+                    <div class="logo">AI Daily News</div>
+                    <div class="nav-icons">
+                        <div class="nav-icon" onclick="showHint('点击可查看历史日报')">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                                <line x1="16" y1="2" x2="16" y2="6"></line>
+                                <line x1="8" y1="2" x2="8" y2="6"></line>
+                                <line x1="3" y1="10" x2="21" y2="10"></line>
+                            </svg>
+                        </div>
+                        <div class="nav-icon" onclick="showHint('点击可搜索内容')">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <circle cx="11" cy="11" r="8"></circle>
+                                <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                            </svg>
+                        </div>
+                    </div>
+                </div>
+                <div class="issue-info">
+                    <div class="issue-number">Issue #256</div>
+                    <div class="issue-date">2024年3月12日</div>
+                </div>
+            </div>
+
+            <!-- 内容区域 -->
+            <div class="content-section">
+                <!-- 精选推荐 -->
+                <div class="section-title">
+                    <span>🎯</span> 今日精选
+                </div>
+                
+                <div class="carousel-container">
+                    <div class="carousel-slide active" id="slide-1">
+                        <div class="featured-card">
+                            <div class="category-tag">技术前沿</div>
+                            <h3 class="featured-title">AI芯片新突破：能耗降低90%的同时性能提升3倍</h3>
+                            <p class="featured-excerpt">最新研究成果显示，新型神经网络处理器在保持高计算能力的同时，实现了前所未有的能效比...</p>
+                            <div class="featured-meta">
+                                <span>科技日报</span>
+                                <span>2小时前 · 阅读 12.5k</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="carousel-slide" id="slide-2">
+                        <div class="featured-card" style="background: linear-gradient(135deg, #0ea5e9, #0284c7);">
+                            <div class="category-tag" style="background: rgba(255,255,255,0.2);">产业动态</div>
+                            <h3 class="featured-title">商汤科技完成C轮融资，估值达180亿美元创纪录</h3>
+                            <p class="featured-excerpt">本轮投资由多家国际知名机构领投，资金将主要用于技术研发和全球化布局...</p>
+                            <div class="featured-meta">
+                                <span>财经网</span>
+                                <span>4小时前 · 阅读 8.9k</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="carousel-slide" id="slide-3">
+                        <div class="featured-card" style="background: linear-gradient(135deg, #10b981, #059669);">
+                            <div class="category-tag" style="background: rgba(255,255,255,0.2);">政策法规</div>
+                            <h3 class="featured-title">国家发布AI伦理治理新规，明确算法透明度要求</h3>
+                            <p class="featured-excerpt">新规定要求AI系统必须具备可解释性，保障用户知情权和选择权...</p>
+                            <div class="featured-meta">
+                                <span>新华网</span>
+                                <span>6小时前 · 阅读 15.2k</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="carousel-indicators">
+                    <div class="indicator active" onclick="switchSlide(1)"></div>
+                    <div class="indicator" onclick="switchSlide(2)"></div>
+                    <div class="indicator" onclick="switchSlide(3)"></div>
+                </div>
+            </div>
+
+            <div class="content-section">
+                <!-- 行业速递 -->
+                <div class="section-title">
+                    <span>⚡</span> 行业速递
+                </div>
+                
+                <div class="news-card" onclick="showHint('点击查看完整文章')">
+                    <div class="news-header">
+                        <div class="news-category">技术突破</div>
+                        <div class="news-meta">
+                            <span>OpenAI</span>
+                            <span>3小时前</span>
+                        </div>
+                    </div>
+                    <h4 class="news-title">GPT-5技术突破：多模态能力大幅提升</h4>
+                    <div class="news-meta">
+                        <span>新一代大语言模型在图像理解和生成方面表现卓越</span>
+                    </div>
+                </div>
+                
+                <div class="news-card" onclick="showHint('点击查看完整文章')">
+                    <div class="news-header">
+                        <div class="news-category">投融资</div>
+                        <div class="news-meta">
+                            <span>量子科技</span>
+                            <span>5小时前</span>
+                        </div>
+                    </div>
+                    <h4 class="news-title">量子计算初创公司获亿元天使轮融资</h4>
+                    <div class="news-meta">
+                        <span>本轮融资将加速量子算法研发和产业化进程</span>
+                    </div>
+                </div>
+                
+                <div class="news-card" onclick="showHint('点击查看完整文章')">
+                    <div class="news-header">
+                        <div class="news-category">应用落地</div>
+                        <div class="news-meta">
+                            <span>智慧医疗</span>
+                            <span>7小时前</span>
+                        </div>
+                    </div>
+                    <h4 class="news-title">AI辅助诊疗系统在三甲医院正式投入使用</h4>
+                    <div class="news-meta">
+                        <span>系统可协助医生进行疾病诊断，准确率达95%以上</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="content-section" style="padding-bottom: 80px;">
+                <!-- 为你推荐 -->
+                <div class="section-title">
+                    <span>❤️</span> 为你推荐
+                </div>
+                
+                <div class="news-card" onclick="showHint('基于您的阅读偏好推荐')">
+                    <div class="news-header">
+                        <div class="news-category">历史回顾</div>
+                        <div class="news-meta">
+                            <span>AI发展史</span>
+                            <span>来自第245期</span>
+                        </div>
+                    </div>
+                    <h4 class="news-title">深度学习十年发展回顾：从理论到应用的完整演进</h4>
+                    <div class="news-meta">
+                        <span>系统梳理了深度学习技术的发展脉络和关键节点</span>
+                    </div>
+                </div>
+                
+                <div class="news-card" onclick="showHint('基于您的阅读偏好推荐')">
+                    <div class="news-header">
+                        <div class="news-category">前沿研究</div>
+                        <div class="news-meta">
+                            <span>学术论文</span>
+                            <span>来自第251期</span>
+                        </div>
+                    </div>
+                    <h4 class="news-title">Transformer架构的新变种：EfficientFormerV2</h4>
+                    <div class="news-meta">
+                        <span>在保持性能的同时将计算效率提升40%</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 底部导航栏 -->
+        <div class="bottom-nav">
+            <div class="nav-items">
+                <div class="nav-item active" onclick="showHint('当前在首页')">
+                    <svg class="nav-icon-svg" fill="currentColor" viewBox="0 0 20 20">
+                        <path d="M10.707 2.293a1 1 0 00-1.414 0l-7 7a1 1 0 001.414 1.414L4 10.414V17a1 1 0 001 1h2a1 1 0 001-1v-2a1 1 0 011-1h2a1 1 0 011 1v2a1 1 0 001 1h2a1 1 0 001-1v-6.586l.293.293a1 1 0 001.414-1.414l-7-7z"></path>
+                    </svg>
+                    <span class="nav-label">首页</span>
+                </div>
+                <div class="nav-item" onclick="showHint('点击进入搜索页面')">
+                    <svg class="nav-icon-svg" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                    </svg>
+                    <span class="nav-label">搜索</span>
+                </div>
+                <div class="nav-item" onclick="showHint('点击查看收藏内容')">
+                    <svg class="nav-icon-svg" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"></path>
+                    </svg>
+                    <span class="nav-label">收藏</span>
+                </div>
+                <div class="nav-item" onclick="showHint('点击进入个人中心')">
+                    <svg class="nav-icon-svg" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
+                    </svg>
+                    <span class="nav-label">我的</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 交互提示 -->
+    <div class="interaction-hint" id="hint" style="display: none;">
+        点击卡片可查看详情页面
+    </div>
+
+    <script>
+        let currentSlide = 1;
+        const totalSlides = 3;
+
+        function switchSlide(slideNumber) {
+            // 隐藏所有幻灯片
+            for (let i = 1; i <= totalSlides; i++) {
+                document.getElementById(`slide-${i}`).classList.remove('active');
+                document.querySelectorAll('.indicator')[i-1].classList.remove('active');
+            }
+            
+            // 显示指定幻灯片
+            document.getElementById(`slide-${slideNumber}`).classList.add('active');
+            document.querySelectorAll('.indicator')[slideNumber-1].classList.add('active');
+            
+            currentSlide = slideNumber;
+        }
+
+        function showHint(message) {
+            const hint = document.getElementById('hint');
+            hint.textContent = message;
+            hint.style.display = 'block';
+            
+            setTimeout(() => {
+                hint.style.display = 'none';
+            }, 2000);
+        }
+
+        // 自动轮播
+        setInterval(() => {
+            const nextSlide = currentSlide % totalSlides + 1;
+            switchSlide(nextSlide);
+        }, 5000);
+
+        // 添加触摸滑动支持
+        let startX = 0;
+        let startY = 0;
+
+        document.querySelector('.carousel-container').addEventListener('touchstart', (e) => {
+            startX = e.touches[0].clientX;
+            startY = e.touches[0].clientY;
+        });
+
+        document.querySelector('.carousel-container').addEventListener('touchend', (e) => {
+            const endX = e.changedTouches[0].clientX;
+            const endY = e.changedTouches[0].clientY;
+            
+            const diffX = startX - endX;
+            const diffY = startY - endY;
+            
+            // 确保是水平滑动
+            if (Math.abs(diffX) > Math.abs(diffY) && Math.abs(diffX) > 50) {
+                if (diffX > 0) {
+                    // 向左滑动，下一张
+                    const nextSlide = currentSlide % totalSlides + 1;
+                    switchSlide(nextSlide);
+                } else {
+                    // 向右滑动，上一张
+                    const prevSlide = currentSlide === 1 ? totalSlides : currentSlide - 1;
+                    switchSlide(prevSlide);
+                }
+            }
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,735 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Daily News Agent配置管理</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: #f8fafc;
+            color: #1e293b;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        /* 侧边栏 */
+        .sidebar {
+            width: 240px;
+            height: 100vh;
+            background: #1e293b;
+            position: fixed;
+            left: 0;
+            top: 0;
+            padding: 24px 0;
+            overflow-y: auto;
+        }
+
+        .logo {
+            padding: 0 24px 24px;
+            border-bottom: 1px solid #334155;
+            margin-bottom: 24px;
+        }
+
+        .logo-text {
+            color: white;
+            font-size: 20px;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .nav-menu {
+            padding: 0 12px;
+        }
+
+        .nav-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 16px;
+            border-radius: 8px;
+            margin-bottom: 4px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            color: #94a3b8;
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        .nav-item:hover {
+            background: #334155;
+            color: #e2e8f0;
+        }
+
+        .nav-item.active {
+            background: #4f46e5;
+            color: white;
+        }
+
+        /* 主内容区 */
+        .main-content {
+            margin-left: 240px;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* 顶部导航 */
+        .top-nav {
+            height: 64px;
+            background: white;
+            border-bottom: 1px solid #e2e8f0;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 24px;
+        }
+
+        .breadcrumb {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: #64748b;
+            font-size: 14px;
+        }
+
+        .breadcrumb-current {
+            color: #1e293b;
+            font-weight: 500;
+        }
+
+        /* 内容区域 */
+        .content-area {
+            flex: 1;
+            padding: 24px;
+            overflow-y: auto;
+        }
+
+        /* 卡片组件 */
+        .card {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            margin-bottom: 24px;
+        }
+
+        .card-header {
+            padding: 20px 24px;
+            border-bottom: 1px solid #f1f5f9;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .card-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #1e293b;
+        }
+
+        .card-body {
+            padding: 24px;
+        }
+
+        /* Agent类型标签 */
+        .agent-types {
+            display: flex;
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+
+        .agent-type-btn {
+            padding: 12px 24px;
+            border-radius: 8px;
+            background: #f1f5f9;
+            border: none;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .agent-type-btn.active {
+            background: #4f46e5;
+            color: white;
+        }
+
+        .agent-type-btn:hover:not(.active) {
+            background: #e2e8f0;
+        }
+
+        /* Agent配置表单 */
+        .config-form {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 24px;
+        }
+
+        .form-section {
+            background: #f8fafc;
+            border-radius: 8px;
+            padding: 20px;
+        }
+
+        .section-title {
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 16px;
+            color: #1e293b;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: #334155;
+        }
+
+        .form-input, .form-select, .form-textarea {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid #cbd5e1;
+            border-radius: 6px;
+            font-size: 14px;
+            transition: border-color 0.2s ease;
+        }
+
+        .form-textarea {
+            min-height: 120px;
+            resize: vertical;
+        }
+
+        .form-input:focus, .form-select:focus, .form-textarea:focus {
+            outline: none;
+            border-color: #4f46e5;
+            box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+        }
+
+        /* 开关组件 */
+        .toggle-switch {
+            position: relative;
+            display: inline-block;
+            width: 50px;
+            height: 24px;
+        }
+
+        .toggle-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #cbd5e1;
+            transition: .4s;
+            border-radius: 24px;
+        }
+
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 16px;
+            width: 16px;
+            left: 4px;
+            bottom: 4px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+
+        input:checked + .slider {
+            background-color: #4f46e5;
+        }
+
+        input:checked + .slider:before {
+            transform: translateX(26px);
+        }
+
+        /* 按钮组 */
+        .button-group {
+            display: flex;
+            gap: 12px;
+            margin-top: 24px;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            border: none;
+            transition: all 0.2s ease;
+        }
+
+        .btn.primary { background: #4f46e5; color: white; }
+        .btn.secondary { background: #f1f5f9; color: #334155; }
+        .btn.outline { background: transparent; border: 1px solid #cbd5e1; color: #334155; }
+        .btn.success { background: #10b981; color: white; }
+        .btn.danger { background: #ef4444; color: white; }
+
+        .btn:hover { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+
+        /* Agent列表 */
+        .agent-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+        }
+
+        .agent-card {
+            background: white;
+            border-radius: 12px;
+            border: 1px solid #e2e8f0;
+            padding: 20px;
+            transition: all 0.2s ease;
+        }
+
+        .agent-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+            border-color: #4f46e5;
+        }
+
+        .agent-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 16px;
+        }
+
+        .agent-name {
+            font-size: 16px;
+            font-weight: 600;
+            color: #1e293b;
+        }
+
+        .agent-status {
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+
+        .status-running { background: #dcfce7; color: #166534; }
+        .status-stopped { background: #fee2e2; color: #991b1b; }
+        .status-paused { background: #fef3c7; color: #92400e; }
+
+        .agent-description {
+            color: #64748b;
+            font-size: 14px;
+            margin-bottom: 16px;
+            line-height: 1.5;
+        }
+
+        .agent-stats {
+            display: flex;
+            justify-content: space-between;
+            font-size: 12px;
+            color: #64748b;
+        }
+
+        /* 技能配置 */
+        .skill-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 12px;
+        }
+
+        .skill-tag {
+            background: #e0e7ff;
+            color: #4f46e5;
+            padding: 4px 12px;
+            border-radius: 16px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+
+        /* 响应式 */
+        @media (max-width: 768px) {
+            .config-form { grid-template-columns: 1fr; }
+            .agent-list { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+    <!-- 侧边栏 -->
+    <div class="sidebar">
+        <div class="logo">
+            <div class="logo-text">
+                <span>🤖</span>
+                <span>AI News Admin</span>
+            </div>
+        </div>
+        
+        <div class="nav-menu">
+            <div class="nav-item">
+                <div class="nav-icon">📊</div>
+                <span>仪表板</span>
+            </div>
+            <div class="nav-item">
+                <div class="nav-icon">👥</div>
+                <span>用户管理</span>
+            </div>
+            <div class="nav-item">
+                <div class="nav-icon">📰</div>
+                <span>内容管理</span>
+            </div>
+            <div class="nav-item active">
+                <div class="nav-icon">🤖</div>
+                <span>Agent管理</span>
+            </div>
+            <div class="nav-item">
+                <div class="nav-icon">⚙️</div>
+                <span>系统配置</span>
+            </div>
+            <div class="nav-item">
+                <div class="nav-icon">📈</div>
+                <span>数据分析</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- 主内容区 -->
+    <div class="main-content">
+        <!-- 顶部导航 -->
+        <div class="top-nav">
+            <div class="breadcrumb">
+                <span>管理后台</span>
+                <span>/</span>
+                <span>Agent管理</span>
+                <span>/</span>
+                <span class="breadcrumb-current">配置管理</span>
+            </div>
+            <div class="user-profile">
+                <div class="avatar">A</div>
+                <span>管理员</span>
+            </div>
+        </div>
+
+        <!-- 内容区域 -->
+        <div class="content-area">
+            <!-- Agent类型选择 -->
+            <div class="agent-types">
+                <button class="agent-type-btn active" data-type="collector">
+                    <span>🕵️</span>
+                    <span>采集Agent</span>
+                </button>
+                <button class="agent-type-btn" data-type="filter">
+                    <span>🔍</span>
+                    <span>筛选Agent</span>
+                </button>
+                <button class="agent-type-btn" data-type="analyzer">
+                    <span>📊</span>
+                    <span>分析Agent</span>
+                </button>
+            </div>
+
+            <!-- Agent配置表单 -->
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-title">采集Agent配置</div>
+                    <div class="button-group">
+                        <button class="btn outline">重置</button>
+                        <button class="btn primary">保存配置</button>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="config-form">
+                        <!-- 基础配置 -->
+                        <div class="form-section">
+                            <div class="section-title">
+                                <span>⚙️</span>
+                                <span>基础配置</span>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label class="form-label">Agent名称</label>
+                                <input type="text" class="form-input" value="新闻采集器-科技版" placeholder="输入Agent名称">
+                            </div>
+                            
+                            <div class="form-group">
+                                <label class="form-label">描述</label>
+                                <textarea class="form-textarea" placeholder="描述这个Agent的作用和特点">专门负责采集科技类新闻内容，从指定的新闻源获取最新的AI相关资讯</textarea>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label class="form-label">运行状态</label>
+                                <div style="display: flex; align-items: center; gap: 12px;">
+                                    <label class="toggle-switch">
+                                        <input type="checkbox" checked>
+                                        <span class="slider"></span>
+                                    </label>
+                                    <span>启用Agent</span>
+                                </div>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label class="form-label">执行频率</label>
+                                <select class="form-select">
+                                    <option>每30分钟</option>
+                                    <option selected>每小时</option>
+                                    <option>每2小时</option>
+                                    <option>每天</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <!-- LLM配置 -->
+                        <div class="form-section">
+                            <div class="section-title">
+                                <span>🧠</span>
+                                <span>LLM配置</span>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label class="form-label">大模型选择</label>
+                                <select class="form-select">
+                                    <option>GPT-4 Turbo</option>
+                                    <option selected>Claude-3 Opus</option>
+                                    <option>Gemini Pro</option>
+                                </select>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label class="form-label">Temperature</label>
+                                <input type="range" min="0" max="1" step="0.1" value="0.7" class="form-input">
+                                <div style="display: flex; justify-content: space-between; font-size: 12px; color: #64748b; margin-top: 4px;">
+                                    <span>0 (精确)</span>
+                                    <span>0.7</span>
+                                    <span>1 (创意)</span>
+                                </div>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label class="form-label">最大Token数</label>
+                                <input type="number" class="form-input" value="2000" min="100" max="4000">
+                            </div>
+                            
+                            <div class="form-group">
+                                <label class="form-label">Top P</label>
+                                <input type="number" class="form-input" value="0.9" min="0" max="1" step="0.1">
+                            </div>
+                        </div>
+
+                        <!-- 采集配置 -->
+                        <div class="form-section">
+                            <div class="section-title">
+                                <span>🌐</span>
+                                <span>采集配置</span>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label class="form-label">新闻源数量</label>
+                                <input type="number" class="form-input" value="15" min="1" max="50">
+                            </div>
+                            
+                            <div class="form-group">
+                                <label class="form-label">单源最大采集量</label>
+                                <input type="number" class="form-input" value="20" min="5" max="100">
+                            </div>
+                            
+                            <div class="form-group">
+                                <label class="form-label">时效性要求</label>
+                                <select class="form-select">
+                                    <option>1小时内</option>
+                                    <option selected>6小时内</option>
+                                    <option>12小时内</option>
+                                    <option>24小时内</option>
+                                </select>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label class="form-label">热度阈值</label>
+                                <input type="number" class="form-input" value="1000" placeholder="最低阅读量要求">
+                            </div>
+                        </div>
+
+                        <!-- 分类配置 -->
+                        <div class="form-section">
+                            <div class="section-title">
+                                <span>🏷️</span>
+                                <span>分类配置</span>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label class="form-label">默认分类</label>
+                                <select class="form-select" multiple size="4">
+                                    <option selected>技术前沿</option>
+                                    <option selected>产业动态</option>
+                                    <option>投融资</option>
+                                    <option>政策法规</option>
+                                    <option>学术研究</option>
+                                    <option>人物访谈</option>
+                                </select>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label class="form-label">自定义提示词</label>
+                                <textarea class="form-textarea" placeholder="请输入用于分类的提示词">请将这篇新闻分类到以下类别中最合适的一个：技术前沿、产业动态、投融资、政策法规、学术研究、人物访谈。只需要回复类别名称。">请将这篇新闻分类到以下类别中最合适的一个：技术前沿、产业动态、投融资、政策法规、学术研究、人物访谈。只需要回复类别名称。</textarea>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 已配置Agent列表 -->
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-title">已配置的Agent</div>
+                    <button class="btn success">新建Agent</button>
+                </div>
+                <div class="card-body">
+                    <div class="agent-list">
+                        <!-- 采集Agent -->
+                        <div class="agent-card">
+                            <div class="agent-header">
+                                <div class="agent-name">新闻采集器-科技版</div>
+                                <div class="agent-status status-running">运行中</div>
+                            </div>
+                            <div class="agent-description">
+                                专门采集科技类新闻，从15个主要新闻源获取最新AI资讯
+                            </div>
+                            <div class="skill-tags">
+                                <span class="skill-tag">网页爬取</span>
+                                <span class="skill-tag">RSS解析</span>
+                                <span class="skill-tag">内容分类</span>
+                            </div>
+                            <div class="agent-stats">
+                                <span>今日任务: 24/25</span>
+                                <span>成功率: 96%</span>
+                            </div>
+                        </div>
+
+                        <!-- 筛选Agent -->
+                        <div class="agent-card">
+                            <div class="agent-header">
+                                <div class="agent-name">内容筛选器-主频道</div>
+                                <div class="agent-status status-running">运行中</div>
+                            </div>
+                            <div class="agent-description">
+                                负责筛选和验证采集到的新闻内容，确保质量和真实性
+                            </div>
+                            <div class="skill-tags">
+                                <span class="skill-tag">事实核查</span>
+                                <span class="skill-tag">质量评分</span>
+                                <span class="skill-tag">去重处理</span>
+                            </div>
+                            <div class="agent-stats">
+                                <span>今日处理: 86/92</span>
+                                <span>准确率: 93.5%</span>
+                            </div>
+                        </div>
+
+                        <!-- 分析Agent -->
+                        <div class="agent-card">
+                            <div class="agent-header">
+                                <div class="agent-name">趋势分析器-AI专题</div>
+                                <div class="agent-status status-stopped">已停止</div>
+                            </div>
+                            <div class="agent-description">
+                                分析每日AI新闻趋势，生成话题聚类和深度洞察
+                            </div>
+                            <div class="skill-tags">
+                                <span class="skill-tag">话题聚类</span>
+                                <span class="skill-tag">情感分析</span>
+                                <span class="skill-tag">趋势预测</span>
+                            </div>
+                            <div class="agent-stats">
+                                <span>今日分析: 0/0</span>
+                                <span>准确率: -</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Agent类型切换
+        document.querySelectorAll('.agent-type-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                // 更新按钮状态
+                document.querySelectorAll('.agent-type-btn').forEach(b => b.classList.remove('active'));
+                this.classList.add('active');
+                
+                // 更新卡片标题
+                const agentType = this.dataset.type;
+                const titles = {
+                    collector: '采集Agent配置',
+                    filter: '筛选Agent配置', 
+                    analyzer: '分析Agent配置'
+                };
+                document.querySelector('.card-title').textContent = titles[agentType];
+                
+                // 这里可以加载对应类型的配置表单
+                console.log('切换到:', agentType);
+            });
+        });
+
+        // 表单交互效果
+        document.querySelectorAll('input, select, textarea').forEach(element => {
+            element.addEventListener('focus', function() {
+                this.parentElement.classList.add('focused');
+            });
+            
+            element.addEventListener('blur', function() {
+                this.parentElement.classList.remove('focused');
+            });
+        });
+
+        // 模拟保存配置
+        document.querySelector('.btn.primary').addEventListener('click', function() {
+            this.textContent = '保存中...';
+            this.disabled = true;
+            
+            setTimeout(() => {
+                this.textContent = '保存成功';
+                this.classList.remove('primary');
+                this.classList.add('success');
+                
+                setTimeout(() => {
+                    this.textContent = '保存配置';
+                    this.classList.remove('success');
+                    this.classList.add('primary');
+                    this.disabled = false;
+                }, 2000);
+            }, 1500);
+        });
+
+        // Agent卡片交互
+        document.querySelectorAll('.agent-card').forEach(card => {
+            card.addEventListener('click', function() {
+                // 这里可以弹出详细配置面板
+                alert('点击了Agent卡片，可以在这里显示详细配置');
+            });
+        });
+    </script>
+</body>
+</html>
